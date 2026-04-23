@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>צוות חילוץ 10 - משחק מלא ומשודרג</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&family=JetBrains+Mono:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #07090f;
+            --bg-panel: #111827;
+            --bg-panel-light: #1f2937;
+            --neon-blue: #00f0ff;
+            --neon-blue-dim: rgba(0, 240, 255, 0.2);
+            --neon-red: #ef4444;
+            --neon-red-dim: rgba(239, 68, 68, 0.2);
+            --neon-orange: #f59e0b;
+            --neon-green: #10b981;
+            --neon-purple: #8b5cf6;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --text-tech: #60a5fa;
+            --cut-corner: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            --cut-corner-small: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+        }
+
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
+        body { margin: 0; padding: 0; background-color: var(--bg-dark); color: var(--text-main); font-family: 'Heebo', sans-serif; height: 100vh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; background-image: linear-gradient(rgba(7, 9, 15, 0.8), rgba(7, 9, 15, 0.9)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,240,255,0.03) 2px, rgba(0,240,255,0.03) 4px); }
+
+        .screen { display: none; width: 100%; height: calc(100vh - 70px); flex-grow: 1; animation: fadeIn 0.5s ease-out; position: relative;}
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15)); background-size: 100% 4px; pointer-events: none; z-index: 1000; }
+
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: linear-gradient(90deg, var(--bg-panel) 0%, transparent 100%); border-bottom: 2px solid var(--bg-panel-light); height: 70px; z-index: 50;}
+        .logo { font-size: 28px; font-weight: 900; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+        .logo i { color: var(--neon-red); font-size: 32px; filter: drop-shadow(0 0 5px var(--neon-red)); }
+        .status-bar { display: flex; gap: 20px; font-family: 'JetBrains Mono', monospace; color: var(--neon-blue); font-size: 16px; }
+        .status-item { display: flex; align-items: center; gap: 8px; background: var(--neon-blue-dim); padding: 8px 20px; clip-path: var(--cut-corner-small); }
+
+        /* XP Counter and Garage Styles */
+        .xp-counter { border: 1px solid var(--neon-orange); color: var(--neon-orange); background: rgba(245, 158, 11, 0.1); font-weight: bold; }
+        .btn-garage { background: transparent; border: 2px solid var(--neon-purple); color: var(--neon-purple); padding: 15px; margin: 15px 20px 0 20px; clip-path: var(--cut-corner-small); cursor: pointer; font-family: 'Heebo', sans-serif; font-size: 18px; font-weight: bold; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-garage:hover { background: var(--neon-purple); color: #000; box-shadow: 0 0 15px var(--neon-purple-dim); }
+        
+        .garage-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 200; justify-content: center; align-items: center; }
+        .garage-modal { background: var(--bg-panel); border: 2px solid var(--neon-blue); padding: 30px; clip-path: var(--cut-corner); width: 600px; color: white; display: flex; flex-direction: column; gap: 20px;}
+        .garage-modal h2 { margin: 0; color: var(--neon-blue); font-size: 32px; border-bottom: 1px solid var(--neon-blue-dim); padding-bottom: 10px;}
+        .upgrade-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto;}
+        .upgrade-item { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--bg-panel-light); padding: 20px; background: rgba(0,0,0,0.3); transition: all 0.2s;}
+        .upgrade-item:hover { border-color: var(--neon-orange); }
+        .upgrade-info { display: flex; gap: 15px; align-items: center; }
+        .upgrade-icon { font-size: 36px; color: var(--neon-orange); width: 50px; text-align: center;}
+        .upgrade-text h4 { margin: 0 0 5px 0; font-size: 22px; color: var(--text-main); }
+        .upgrade-text p { margin: 0; font-size: 14px; color: var(--text-muted); }
+        .btn-buy { background: var(--neon-green); border: none; color: black; padding: 12px 25px; font-size:18px; font-weight: bold; cursor: pointer; clip-path: var(--cut-corner-small); width: 140px;}
+        .btn-buy:disabled { background: #374151; color: #9ca3af; cursor: not-allowed; }
+        .btn-buy.purchased { background: var(--neon-blue); color: black; cursor: default; }
+
+        /* Upgrades Dynamic CSS overrides for SVGs */
+        body.upg-titan-gold [data-id="titan"] svg polygon[fill="#991b1b"],
+        body.upg-titan-gold [data-vehicle-id="titan"] svg polygon[fill="#991b1b"] { fill: #f59e0b !important; }
+        body.upg-titan-gold [data-id="titan"] svg polygon[fill="#7f1d1d"],
+        body.upg-titan-gold [data-vehicle-id="titan"] svg polygon[fill="#7f1d1d"] { fill: #b45309 !important; }
+        body.upg-scorpion-red [data-id="scorpion"] svg path[stroke="#9ca3af"],
+        body.upg-scorpion-red [data-vehicle-id="scorpion"] svg path[stroke="#9ca3af"] { stroke: #ef4444 !important; filter: drop-shadow(0 0 5px #ef4444); }
+
+        /* Weather Overlays */
+        .weather-night-overlay { display: none; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0, 5, 20, 0.7); pointer-events: none; z-index: 8; }
+        body.weather-night .weather-night-overlay { display: block; }
+        
+        .weather-rain-overlay { display: none; position: absolute; top:0; left:0; width:100%; height:100%; background-image: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.2) 1px, transparent 1px); background-size: 100% 50px; animation: rainFall 0.3s linear infinite; pointer-events: none; z-index: 15; opacity: 0.6; }
+        body.weather-rain .weather-rain-overlay { display: block; }
+        @keyframes rainFall { from {background-position: 0 0;} to {background-position: 0 500px;} }
+
+        /* Headlights for Night mode */
+        .headlight-beam { display: none; position: absolute; bottom: 20px; width: 400px; height: 100px; pointer-events: none; z-index: 5; }
+        body.weather-night .headlight-beam { display: block; }
+        .beam-left { right: 80%; background: linear-gradient(-90deg, rgba(255,255,200,0.6), transparent); clip-path: polygon(100% 30%, 0 0, 0 100%, 100% 70%); }
+        .beam-right { left: 80%; background: linear-gradient(90deg, rgba(255,255,200,0.6), transparent); clip-path: polygon(0 30%, 100% 0, 100% 100%, 0 70%); }
+
+
+        /* ================= SCREEN 1: HQ ================= */
+        #screen-hq { grid-template-columns: 1fr 2fr; gap: 20px; padding: 20px 30px; }
+        .panel { background-color: var(--bg-panel); border: 1px solid var(--bg-panel-light); clip-path: var(--cut-corner); display: flex; flex-direction: column; position: relative; }
+        .panel-header { background-color: var(--bg-panel-light); padding: 15px 20px; font-weight: 900; font-size: 18px; letter-spacing: 1px; color: var(--text-muted); border-bottom: 1px solid var(--neon-blue-dim); }
+        
+        .radar-container { flex-grow: 1; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle, rgba(0,240,255,0.1) 0%, transparent 70%); border-bottom: 1px solid var(--bg-panel-light); position: relative;}
+        .radar { width: 300px; height: 300px; border-radius: 50%; border: 2px solid var(--neon-blue-dim); position: relative; background: linear-gradient(90deg, transparent 49%, var(--neon-blue-dim) 50%, transparent 51%), linear-gradient(0deg, transparent 49%, var(--neon-blue-dim) 50%, transparent 51%); }
+        .scanner { position: absolute; top: 50%; left: 50%; width: 50%; height: 50%; background: conic-gradient(from 0deg, transparent 70%, var(--neon-blue) 100%); transform-origin: 0% 0%; animation: scan 4s linear infinite; }
+        @keyframes scan { 100% { transform: rotate(360deg); } }
+        .blip { position: absolute; width: 16px; height: 16px; background-color: var(--neon-red); border-radius: 50%; box-shadow: 0 0 15px var(--neon-red); opacity: 0; }
+        .blip.active { animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 1; }
+        @keyframes ping { 75%, 100% { transform: scale(2.5); opacity: 0; } }
+
+        /* חלון התרעה מרכזי וגדול (Visual Pop-up Alert) */
+        .alert-overlay { display: none; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; flex-direction: column; }
+        .alert-box-v2 { background: var(--bg-panel); border: 4px solid var(--neon-red); padding: 40px; text-align: center; clip-path: var(--cut-corner); box-shadow: 0 0 50px var(--neon-red-dim); animation: popInAlert 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; max-width: 600px; }
+        @keyframes popInAlert { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .alert-box-v2 .alert-icon { font-size: 90px; color: var(--neon-red); margin-bottom: 20px; filter: drop-shadow(0 0 15px var(--neon-red)); }
+        .alert-box-v2 h2 { font-size: 38px; color: var(--neon-red); margin: 0 0 15px 0; font-weight: 900;}
+        .alert-box-v2 p { font-size: 24px; color: white; margin: 0 0 10px 0; line-height: 1.4;}
+        .alert-box-v2 .alert-meta { font-size: 18px; color: var(--neon-orange); margin-bottom: 30px; font-family: 'JetBrains Mono', monospace;}
+        .alert-box-v2 button { background: var(--neon-red); color: white; font-size: 26px; padding: 15px 40px; border: none; clip-path: var(--cut-corner-small); cursor: pointer; font-weight: bold; transition: transform 0.1s;}
+        .alert-box-v2 button:active { transform: scale(0.95); }
+        
+        body.alert-state { animation: redAlertScreen 1s infinite alternate; }
+        @keyframes redAlertScreen { from { box-shadow: inset 0 0 0px var(--neon-red); } to { box-shadow: inset 0 0 60px var(--neon-red-dim); } }
+
+        .loadout-panel { display: flex; flex-direction: column; gap: 15px; }
+        .selection-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 15px; }
+        .card { background-color: var(--bg-dark); border: 2px solid var(--bg-panel-light); clip-path: var(--cut-corner-small); cursor: pointer; transition: all 0.2s; position: relative; opacity: 0.5; display: flex; flex-direction: column; pointer-events: none;}
+        .card.interactive { opacity: 1; pointer-events: auto; }
+        .card.selected { border-color: var(--neon-orange); background: linear-gradient(45deg, var(--bg-dark), rgba(245, 158, 11, 0.1)); box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.2); }
+        
+        .card-visual { height: 130px; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 70%); padding: 10px; position: relative;}
+        .card-visual svg { width: 100%; height: 100%; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.8)); transition: all 0.2s; }
+        .card-visual img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.8)); }
+        .card.selected .card-visual svg, .card.selected .card-visual img { filter: drop-shadow(0 0 10px currentColor); transform: scale(1.1); }
+        
+        /* Advanced SVG Outlines */
+        svg polygon, svg path, svg rect, svg circle { stroke: #111; stroke-width: 2; stroke-linejoin: round; }
+        
+        .card[data-id="benny"] { color: var(--neon-red); } .card[data-id="maya"] { color: var(--neon-purple); }
+        .card[data-id="nuri"] { color: var(--neon-blue); } .card[data-id="gal"] { color: var(--neon-green); }
+        .card[data-id="titan"] { color: var(--neon-red); } .card[data-id="scorpion"] { color: var(--neon-orange); }
+        .card[data-id="hawk"] { color: var(--neon-blue); } .card[data-id="manta"] { color: var(--neon-green); }
+
+        .card-info { padding: 12px; text-align: center; background-color: rgba(0,0,0,0.6); border-top: 1px solid rgba(255,255,255,0.05); margin-top: auto;}
+        .card-name { font-weight: 900; font-size: 20px; margin-bottom: 4px; color: var(--text-main); }
+        .card-role { font-size: 13px; color: var(--text-tech); font-family: 'JetBrains Mono', monospace; }
+
+        .action-area { margin-top: auto; display: flex; justify-content: flex-end; padding: 0 15px 15px; }
+        .btn-deploy { background-color: var(--bg-panel-light); color: var(--text-muted); border: 2px solid var(--text-muted); padding: 20px 50px; font-size: 30px; font-weight: 900; letter-spacing: 2px; clip-path: var(--cut-corner); transition: all 0.3s; display: flex; align-items: center; gap: 15px; opacity: 0.5; }
+        .btn-deploy.ready { background-color: rgba(239, 68, 68, 0.1); color: var(--neon-red); border-color: var(--neon-red); cursor: pointer; box-shadow: 0 0 20px var(--neon-red-dim); opacity: 1;}
+        .btn-deploy.ready:active { transform: scale(0.98); }
+
+        /* ================= SCREEN 2: TRANSIT ================= */
+        #screen-transit { background: linear-gradient(to bottom, #0f172a, #020617); position: relative; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 50px;}
+        
+        .parallax-layer { position: absolute; top: 0; left: 0; width: 300%; height: 100%; background-repeat: repeat-x; }
+        .layer-back { background-image: radial-gradient(circle at 50% 80%, rgba(255,255,255,0.05) 0%, transparent 20%); background-size: 200px 100%; opacity: 0.3; }
+        .layer-mid { background-image: linear-gradient(0deg, transparent 20%, rgba(30,41,59,0.8) 20%, transparent 40%); background-size: 400px 100%; }
+        .transit-road { position: absolute; bottom: 0; width: 300%; height: 20%; background: #0f172a; border-top: 4px solid var(--neon-blue); background-image: repeating-linear-gradient(90deg, #334155, #334155 50px, transparent 50px, transparent 150px); background-size: 200px 10%; background-position: top; }
+        
+        /* תוספת מיוחדת למים עבור סירת מנטה */
+        .transit-road.water-mode { background-image: repeating-linear-gradient(90deg, #0369a1, #0369a1 50px, #0284c7 50px, #0284c7 150px); border-top: 4px solid #38bdf8; box-shadow: inset 0 20px 30px rgba(0,0,0,0.3); }
+
+        @keyframes scrollBgToRight { from { transform: translateX(0); } to { transform: translateX(100vw); } }
+        @keyframes scrollBgToLeft { from { transform: translateX(0); } to { transform: translateX(-100vw); } }
+
+        .bg-scroll-right.layer-back { animation: scrollBgToRight 15s linear infinite; }
+        .bg-scroll-right.layer-mid { animation: scrollBgToRight 8s linear infinite; }
+        .bg-scroll-right.transit-road { animation: scrollBgToRight 2s linear infinite; }
+        
+        .bg-scroll-left.layer-back { animation: scrollBgToLeft 15s linear infinite; }
+        .bg-scroll-left.layer-mid { animation: scrollBgToLeft 8s linear infinite; }
+        .bg-scroll-left.transit-road { animation: scrollBgToLeft 2s linear infinite; }
+
+        .transit-vehicle-container { position: absolute; width: 600px; height: 350px; z-index: 10; animation: driveBounce 0.5s infinite alternate ease-in-out; bottom: 15%; display: flex; justify-content: center; align-items: flex-end;}
+        .transit-vehicle-container.pos-left { left: 10%; } 
+        .transit-vehicle-container.pos-right { right: 10%; } 
+        
+        /* מסוק מרחף גבוה */
+        .transit-vehicle-container.flying-vehicle { bottom: 45%; animation: flyBounce 2s infinite alternate ease-in-out; }
+        
+        .svg-full-wrapper { width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-end;}
+        .svg-full-wrapper svg { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 20px 10px rgba(0,0,0,0.8)); position: relative; z-index: 10;}
+        .transit-vehicle-container.lights-on .svg-full-wrapper svg { filter: drop-shadow(0 0 30px var(--neon-blue)) drop-shadow(0 20px 10px rgba(0,0,0,0.8)); }
+        
+        @keyframes driveBounce { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(-8px) rotate(-1deg); } }
+        @keyframes flyBounce { from { transform: translateY(0) rotate(1deg); } to { transform: translateY(-30px) rotate(-1deg); } }
+
+        .transit-controls { position: absolute; top: 30px; right: 30px; display: flex; gap: 20px; z-index: 20; }
+        .btn-transit { background: var(--bg-panel); border: 2px solid var(--neon-blue); color: var(--neon-blue); width: 100px; height: 100px; border-radius: 50%; font-size: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 15px var(--neon-blue-dim); transition: all 0.1s; }
+        .btn-transit:active { transform: scale(0.9); background: var(--neon-blue); color: #000; }
+        .transit-title { position: absolute; top: 30px; left: 30px; font-family: 'JetBrains Mono', monospace; font-size: 40px; color: var(--neon-orange); text-shadow: 0 0 10px var(--neon-orange); z-index: 20;}
+
+        /* ================= SCREEN 3: MISSION ACTION ================= */
+        #screen-mission { flex-direction: column; background: #0f172a; position: relative; }
+        .mission-top-bar { display: flex; justify-content: space-between; padding: 25px 50px; background: rgba(0,0,0,0.6); border-bottom: 3px solid var(--neon-orange); z-index: 10;}
+        .mission-title-action { font-size: 34px; color: var(--neon-orange); font-weight: 900; }
+        .mission-top-bar .status-item { font-size: 20px; padding: 10px 25px;}
+        
+        .mission-scene { flex-grow: 1; position: relative; display: flex; justify-content: space-between; align-items: flex-end; padding: 40px; overflow: hidden; }
+        
+        /* RTL Flex Direction Fixes */
+        .mission-scene.layout-face-right { flex-direction: row; } 
+        .mission-scene.layout-face-left { flex-direction: row-reverse; } 
+
+        .hazard-zone { width: 50%; height: 90%; display: flex; flex-direction: column; justify-content: flex-end; position: relative; }
+        .vehicle-zone { width: 600px; height: 400px; display: flex; justify-content: center; align-items: flex-end; position: relative; z-index: 10;}
+        
+        /* מסוק במסך משימה חייב גם לרחף */
+        .vehicle-zone.mission-flying { transform: translateY(-150px); }
+        
+        .drop-target { position: absolute; width: 130px; height: 130px; border: 5px dashed var(--neon-orange); border-radius: 15px; display: flex; justify-content: center; align-items: center; background: rgba(245, 158, 11, 0.1); animation: pulseTarget 1s infinite alternate; z-index: 5;}
+        @keyframes pulseTarget { from { opacity: 0.5; transform: scale(0.95); } to { opacity: 1; transform: scale(1.05); } }
+        
+        .draggable-tool { position: absolute; width: 100px; height: 100px; background: var(--bg-panel); border: 3px solid var(--neon-blue); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 45px; color: var(--neon-blue); cursor: grab; z-index: 20; box-shadow: 0 0 20px var(--neon-blue-dim); }
+        .draggable-tool:active { cursor: grabbing; transform: scale(1.1); }
+        .draggable-tool.snapped { border-color: var(--neon-green); color: var(--neon-green); box-shadow: 0 0 30px var(--neon-green); pointer-events: none; }
+
+        .final-action-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--neon-green); color: #000; border: none; padding: 25px 50px; font-size: 36px; font-weight: 900; clip-path: var(--cut-corner); cursor: pointer; display: none; box-shadow: 0 0 50px var(--neon-green); z-index: 30; }
+        .final-action-btn:active { transform: translate(-50%, -50%) scale(0.95); }
+
+        /* Action Mini-Games UI */
+        .minigame-ui { display: none; position: absolute; top: 100px; left: 50%; transform: translateX(-50%); width: 450px; background: rgba(17, 24, 39, 0.95); border: 3px solid var(--neon-blue); padding: 25px; border-radius: 12px; z-index: 40; text-align: center; box-shadow: 0 0 30px var(--neon-blue-dim); }
+        .meter-container { width: 100%; height: 35px; background: #000; border: 2px solid #334155; margin-top: 10px; position: relative; overflow: hidden; border-radius: 6px; }
+        .meter-fill { height: 100%; width: 0%; transition: width 0.1s linear; }
+        .pressure-bg { background: linear-gradient(90deg, #ef4444 0%, #ef4444 25%, #10b981 25%, #10b981 75%, #ef4444 75%, #ef4444 100%); }
+        .pressure-indicator { position: absolute; top: -2px; bottom: -2px; width: 8px; background: #fff; box-shadow: 0 0 15px #fff; left: 0%; transition: left 0.1s linear; transform: translateX(-50%); z-index: 5;}
+        .vehicle-wild { animation: wildShake 0.1s infinite; filter: drop-shadow(0 0 30px #ef4444) !important; }
+        @keyframes wildShake { 0% {transform: translate(5px, 5px) rotate(2deg) scale(1.5);} 50% {transform: translate(-5px, -5px) rotate(-2deg) scale(1.5);} 100% {transform: translate(5px, -5px) rotate(2deg) scale(1.5);} }
+
+        /* Comic Fail Animation */
+        @keyframes comicFailBounce {
+            0%   { transform: scale(1.5) translateY(0) rotate(0deg); }
+            20%  { transform: scale(1.5) translateY(-150px) rotate(-20deg); }
+            40%  { transform: scale(1.5) translateY(-150px) rotate(20deg); }
+            60%  { transform: scale(1.5) translateY(-150px) rotate(-20deg); }
+            80%  { transform: scale(1.5) translateY(40px) scaleY(0.4) rotate(0deg); }
+            100% { transform: scale(1.5) translateY(0) rotate(0deg) scaleY(1); }
+        }
+        .vehicle-fail-anim { animation: comicFailBounce 1.5s ease-in-out forwards; }
+
+        /* Mismatch overlay */
+        #mismatchOverlay { display: none; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); flex-direction: column; align-items: center; z-index: 50; background: rgba(0,0,0,0.9); padding: 50px; border: 4px solid var(--neon-red); clip-path: var(--cut-corner); box-shadow: 0 0 50px rgba(239,68,68,0.5);}
+        #mismatchOverlay h2 { color: var(--neon-red); font-size: 50px; margin: 0 0 20px 0; }
+
+        /* Hazard Visuals (הגדלתי את כל האלמנטים) */
+        .cat-tree { width: 100%; height: 100%; border-right: 50px solid #334155; position: absolute; right:0;}
+        .mission-scene.layout-face-right .cat-tree { border-right: none; border-left: 50px solid #334155; left: 0; right: auto; }
+        .cat-character { position: absolute; top: 10%; right: 0; font-size: 80px; transition: transform 0.5s; }
+        .mission-scene.layout-face-right .cat-character { right: auto; left: 0; }
+        
+        .fire-flames { position: absolute; bottom: 0; left: 0; width: 100%; height: 70%; background: linear-gradient(0deg, var(--neon-red), var(--neon-orange), transparent); clip-path: polygon(10% 100%, 20% 40%, 30% 80%, 50% 20%, 70% 90%, 80% 10%, 100% 100%); transition: height 0.5s; }
+        .mud-pit { position: absolute; bottom: 0; width: 100%; height: 35%; background: #451a03; border-radius: 50% 50% 0 0; }
+        .trapped-car { position: absolute; bottom: 10%; right: 25%; font-size: 150px; color: #9ca3af; transition: transform 0.5s; }
+        .mission-scene.layout-face-right .trapped-car { right: auto; left: 25%; }
+        
+        .river-scene { width: 100%; height: 50%; background: #0284c7; position: absolute; bottom: 0; left: 0; border-top: 8px solid #0369a1; }
+        .small-island { width: 180px; height: 60px; background: #a16207; border-radius: 90px 90px 0 0; position: absolute; bottom: 30%; right: 25%; z-index: 5;}
+        .mission-scene.layout-face-right .small-island { right: auto; left: 25%; }
+        .dog-character { position: absolute; bottom: 80%; right: 40px; font-size: 70px; color: #fcd34d; z-index: 10; transition: transform 0.5s;}
+        .mission-scene.layout-face-right .dog-character { right: auto; left: 40px; }
+        
+        .mountain-cliff { width: 80%; height: 80%; background: #475569; position: absolute; bottom: 0; right: 0; clip-path: polygon(0 0, 30% 0, 100% 100%, 0 100%); border-left: 8px solid #334155;}
+        .mission-scene.layout-face-right .mountain-cliff { right: auto; left: 0; clip-path: polygon(0 100%, 100% 100%, 70% 0, 0 0); border-left: none; border-right: 8px solid #334155;}
+        .hiker-character { position: absolute; top: 10px; right: 35%; font-size: 80px; color: #f87171; transition: all 0.5s ease-in-out; z-index: 10;}
+        .mission-scene.layout-face-right .hiker-character { right: auto; left: 35%; }
+        
+        .animated-hero { position: absolute; bottom: 0; right: 40px; width: 120px; height: 120px; font-size:90px; transition: all 0.5s ease-in-out; display: none; z-index: 15;}
+        .mission-scene.layout-face-right .animated-hero { right: auto; left: 40px; }
+
+        /* ================= SCREEN 4: SUCCESS ================= */
+        #screen-success { flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle, #051014, #000); text-align: center; }
+        .success-title { font-size: 90px; color: var(--neon-green); font-family: 'JetBrains Mono', monospace; text-shadow: 0 0 30px var(--neon-green); margin-bottom: 30px; }
+        .stats-box { background: var(--bg-panel); border: 3px solid var(--neon-green); padding: 40px; clip-path: var(--cut-corner); width: 500px; margin-bottom: 50px; }
+        .stat-row { display: flex; justify-content: space-between; font-size: 26px; margin-bottom: 20px; font-family: 'JetBrains Mono'; border-bottom: 1px dashed #333; padding-bottom: 10px; }
+        .stat-val { color: var(--neon-green); font-weight: 700; }
+        .btn-return { background: transparent; border: 3px solid var(--neon-blue); color: var(--neon-blue); padding: 20px 50px; font-size: 28px; font-weight:bold; clip-path: var(--cut-corner); cursor: pointer; transition: all 0.2s; }
+        .btn-return:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 30px var(--neon-blue-dim); }
+    </style>
+</head>
+<body>
+
+    <div class="scanlines"></div>
+
+    <header>
+        <div class="logo"><i class="fa-solid fa-shield-halved"></i> צוות חילוץ 10</div>
+        <div class="status-bar">
+            <div class="status-item"><i class="fa-solid fa-satellite-dish"></i> מערכת פעילה</div>
+            <div class="status-item xp-counter"><span id="headerXp">0</span> XP <i class="fa-solid fa-star"></i></div>
+        </div>
+    </header>
+
+    <!-- SCREEN 1: HQ -->
+    <main id="screen-hq" class="screen active">
+        <!-- Alert Overlay v2 (Central visual pop-up) -->
+        <div class="alert-overlay" id="alertOverlay">
+            <div class="alert-box-v2">
+                <div class="alert-icon" id="alertOverlayIcon"><i class="fa-solid fa-triangle-exclamation fa-fade"></i></div>
+                <h2 id="alertOverlayTitle">קריאת חירום!</h2>
+                <p id="alertOverlayDesc">תיאור האירוע יופיע כאן...</p>
+                <div class="alert-meta" id="alertOverlayMeta">נ.צ: לא ידוע</div>
+                <button id="btnAcknowledgeAlert">הבנתי, הכן צוות!</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">מערכת התרעה (RADAR)</div>
+            <div class="radar-container" id="radarArea">
+                <div class="radar">
+                    <div class="scanner"></div>
+                    <div class="blip" id="radarBlip"></div>
+                </div>
+            </div>
+            <div class="briefing-area" style="display:flex; justify-content:center; align-items:center;">
+                <button class="btn-garage" id="btnOpenGarage"><i class="fa-solid fa-wrench"></i> מוסך שדרוגים</button>
+            </div>
+        </div>
+
+        <div class="panel loadout-panel">
+            <div class="panel-header">בחירת איש צוות טקטי</div>
+            <div class="selection-grid">
+                <div class="card character-card" data-id="benny">
+                    <div class="card-visual">
+                        <svg viewBox="0 0 100 100">
+                            <polygon points="10,90 15,45 35,30 65,30 85,45 90,90 65,100 35,100" fill="#7f1d1d" />
+                            <polygon points="35,30 65,30 50,15" fill="#991b1b" />
+                            <polygon points="25,50 75,50 65,85 35,85" fill="#1f2937" />
+                            <polygon points="35,45 65,45 55,20 45,20" fill="#991b1b" />
+                            <polygon points="38,50 62,50 58,70 42,70" fill="#ea580c" />
+                            <rect x="70" y="60" width="25" height="15" fill="#374151" />
+                            <polygon points="95,60 100,67 95,75" fill="#9ca3af" />
+                            <polygon points="45,80 55,80 50,90" fill="#00f0ff" stroke="none"/>
+                        </svg>
+                    </div>
+                    <div class="card-info"><div class="card-name">בני</div><div class="card-role">מומחה פריצה</div></div>
+                </div>
+                <div class="card character-card" data-id="maya">
+                    <div class="card-visual">
+                        <svg viewBox="0 0 100 100">
+                            <polygon points="30,100 30,60 40,40 60,40 70,60 70,100" fill="#1f2937" />
+                            <polygon points="35,60 65,60 50,80" fill="#6d28d9" />
+                            <polygon points="35,45 65,45 60,20 40,20" fill="#4c1d95" />
+                            <rect x="40" y="30" width="20" height="8" fill="#a78bfa" />
+                        </svg>
+                    </div>
+                    <div class="card-info"><div class="card-name">מאיה</div><div class="card-role">סיירת וטיפוס</div></div>
+                </div>
+                <div class="card character-card" data-id="nuri">
+                    <div class="card-visual">
+                        <svg viewBox="0 0 100 100">
+                            <polygon points="25,100 25,65 40,45 60,45 75,65 75,100" fill="#164e63" />
+                            <rect x="35" y="65" width="30" height="25" fill="#0f766e" />
+                            <circle cx="50" cy="35" r="18" fill="#111827" />
+                            <circle cx="35" cy="35" r="8" fill="#00f0ff" />
+                            <path d="M35,35 L45,45" fill="none" stroke="#00f0ff" />
+                        </svg>
+                    </div>
+                    <div class="card-info"><div class="card-name">נורי</div><div class="card-role">אופרטור רחפנים</div></div>
+                </div>
+                <div class="card character-card" data-id="gal">
+                    <div class="card-visual">
+                        <svg viewBox="0 0 100 100">
+                            <polygon points="25,100 25,55 40,40 60,40 75,55 75,100" fill="#064e3b" />
+                            <circle cx="50" cy="35" r="16" fill="#111827" />
+                            <polygon points="40,35 60,35 55,50 45,50" fill="#059669" />
+                            <circle cx="50" cy="40" r="4" fill="#34d399" />
+                        </svg>
+                    </div>
+                    <div class="card-info"><div class="card-name">גל</div><div class="card-role">קומנדו ימי</div></div>
+                </div>
+            </div>
+
+            <div class="panel-header" style="border-top: 1px solid var(--neon-blue-dim);">בחירת רכב משוריין</div>
+            <div class="selection-grid">
+                <div class="card vehicle-card" data-id="titan">
+                    <div class="card-visual" id="titan-card-visual">
+                        <svg viewBox="0 0 120 70">
+                            <polygon points="5,55 5,30 20,30 35,20 85,20 95,35 95,55" fill="#991b1b" />
+                            <polygon points="5,45 95,45 90,65 15,65" fill="#374151" />
+                            <polygon points="65,20 80,20 85,35 65,35" fill="#1f2937" />
+                            <rect x="15" y="5" width="55" height="6" fill="#4b5563" />
+                            <rect x="15" y="11" width="55" height="2" fill="#1f2937" />
+                            <polygon points="20,5 10,25 30,25" fill="#991b1b" />
+                            <rect x="70" y="10" width="20" height="3" fill="#1f2937" />
+                            <rect x="70" y="15" width="20" height="3" fill="#1f2937" />
+                            <circle cx="72" cy="14" r="3" fill="#ef4444" />
+                            <rect x="40" y="38" width="10" height="2" fill="#00f0ff" stroke="none"/>
+                            <rect x="80" y="38" width="8" height="2" fill="#00f0ff" stroke="none"/>
+                            <circle cx="20" cy="60" r="9" fill="#111827" stroke="#4b5563"/>
+                            <circle cx="38" cy="60" r="9" fill="#111827" stroke="#4b5563"/>
+                            <circle cx="68" cy="60" r="9" fill="#111827" stroke="#4b5563"/>
+                            <circle cx="86" cy="60" r="9" fill="#111827" stroke="#4b5563"/>
+                        </svg>
+                    </div>
+                    <div class="card-info"><div class="card-name">טיטאן</div><div class="card-role">משאית תקיפה</div></div>
+                </div>
+
+                <div class="card vehicle-card" data-id="scorpion">
+                    <div class="card-visual" id="scorpion-card-visual">
+                        <svg viewBox="0 0 100 100">
+                            <polygon points="15,65 15,50 40,40 70,40 90,55 90,65" fill="#ea580c" />
+                            <path d="M40,40 L30,20 L60,20 L70,40" fill="none" stroke="#374151" stroke-width="4" />
+                            <path d="M90,60 L100,60" stroke="#9ca3af" stroke-width="3" />
+                            <circle cx="25" cy="70" r="16" fill="#111827" stroke="#ea580c" stroke-width="4"/>
+                            <circle cx="75" cy="70" r="16" fill="#111827" stroke="#ea580c" stroke-width="4"/>
+                        </svg>
+                    </div>
+                    <div class="card-info"><div class="card-name">עקרב</div><div class="card-role">באגי שטח</div></div>
+                </div>
+
+                <div class="card vehicle-card" data-id="hawk">
+                    <div class="card-visual" id="hawk-card-visual">
+                        <svg viewBox="0 0 100 100">
+                            <polygon points="10,50 30,30 70,30 95,50 70,70 30,70" fill="#1f2937" />
+                            <rect x="20" y="15" width="60" height="4" fill="#111827" />
+                            <rect x="45" y="10" width="10" height="20" fill="#00f0ff" />
+                            <polygon points="70,35 85,45 70,55" fill="#00f0ff" />
+                        </svg>
+                    </div>
+                    <div class="card-info"><div class="card-name">הוק</div><div class="card-role">מסוק חמקן</div></div>
+                </div>
+
+                <div class="card vehicle-card" data-id="manta">
+                    <div class="card-visual" id="manta-card-visual">
+                        <svg viewBox="0 0 100 100">
+                            <rect x="10" y="60" width="80" height="15" rx="5" fill="#064e3b" />
+                            <polygon points="15,60 25,40 70,40 85,60" fill="#059669" />
+                            <polygon points="40,40 45,25 65,25 70,40" fill="#1f2937" />
+                            <circle cx="25" cy="35" r="15" fill="#111827" stroke="#334155" stroke-width="3"/>
+                        </svg>
+                    </div>
+                    <div class="card-info"><div class="card-name">מנטה</div><div class="card-role">רחפת שטח</div></div>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <button class="btn-deploy" id="btnDeploy" disabled>הזנק צוות <i class="fa-solid fa-angles-left"></i></button>
+            </div>
+        </div>
+
+        <!-- Garage Overlay -->
+        <div id="garageOverlay" class="garage-overlay">
+            <div class="garage-modal">
+                <h2><i class="fa-solid fa-wrench"></i> מוסך שדרוגים (פיתוח טכנולוגי)</h2>
+                <div style="font-size: 16px; color: var(--text-muted);">השתמש בנקודות XP שנצברו במשימות כדי לפתוח שדרוגים קוסמטיים לציוד התחנה.</div>
+                <div class="status-item xp-counter" style="align-self: flex-start; margin-bottom: 10px;"><span id="garageXp">0</span> XP זמינים</div>
+                
+                <div class="upgrade-list" id="upgradeList"></div>
+
+                <button class="btn-return" id="btnCloseGarage" style="align-self: center; margin-top: 10px;">חזור למפקדה</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- SCREEN 2: TRANSIT -->
+    <main id="screen-transit" class="screen">
+        <div class="weather-night-overlay"></div>
+        <div class="weather-rain-overlay"></div>
+
+        <div class="transit-title">בדרך לזירה...</div>
+        <div class="transit-controls">
+            <button class="btn-transit" id="btnHorn"><i class="fa-solid fa-bullhorn"></i></button>
+            <button class="btn-transit" id="btnLights"><i class="fa-solid fa-lightbulb"></i></button>
+        </div>
+        
+        <div class="parallax-layer layer-back" id="transitLayerBack"></div>
+        <div class="parallax-layer layer-mid" id="transitLayerMid"></div>
+        <div class="transit-road" id="transitRoad"></div>
+        
+        <div class="transit-vehicle-container" id="activeTransitVehicle">
+            <div class="headlight-beam beam-left" id="transitHeadlightLeft"></div>
+            <div class="headlight-beam beam-right" id="transitHeadlightRight"></div>
+            <div class="svg-full-wrapper" id="transitSvgHolder"></div>
+        </div>
+    </main>
+
+    <!-- SCREEN 3: MISSION ACTION -->
+    <main id="screen-mission" class="screen">
+        <div class="weather-night-overlay"></div>
+        <div class="weather-rain-overlay"></div>
+
+        <div class="mission-top-bar">
+            <div class="mission-title-action" id="missionActionTitle">משימה...</div>
+            <div class="status-item" id="actionProgress" style="border: 1px solid var(--neon-orange); color: var(--neon-orange);">
+                שלב: <span id="missionStepNum">0</span> / <span id="missionTotalSteps">3</span>
+            </div>
+        </div>
+
+        <div class="mission-scene" id="missionScene">
+            <div class="hazard-zone" id="hazardZone"></div>
+            <div class="vehicle-zone" id="vehicleZone">
+                <div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-end; padding-bottom:20px; position:relative;" id="missionVehicleSVG">
+                    <div class="headlight-beam beam-left" id="missionHeadlightLeft"></div>
+                    <div class="headlight-beam beam-right" id="missionHeadlightRight"></div>
+                    <div class="svg-full-wrapper" id="missionSvgHolder"></div>
+                </div>
+            </div>
+            
+            <button class="final-action-btn" id="btnFinalAction">בצע פעולה</button>
+
+            <!-- Mismatch Overlay -->
+            <div id="mismatchOverlay">
+                <h2><i class="fa-solid fa-triangle-exclamation fa-shake"></i> טעות בציוד!</h2>
+                <div style="color:white; font-size:30px; margin-bottom:40px;">הרכב שנבחר אינו מתאים לתוואי השטח!</div>
+                <button class="btn-return" id="btnMismatchReturn">חזור לבסיס</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- SCREEN 4: SUCCESS -->
+    <main id="screen-success" class="screen">
+        <div class="success-title">משימה הושלמה!</div>
+        <div class="stats-box">
+            <div class="stat-row"><span>סטטוס אירוע:</span><span class="stat-val">מנוטרל בהצלחה</span></div>
+            <div class="stat-row"><span>צוות נבחר:</span><span class="stat-val">התאמה מלאה</span></div>
+            <div class="stat-row"><span>תג הצטיינות:</span><span class="stat-val">+ <span id="xpEarned">150</span> XP</span></div>
+        </div>
+        <button class="btn-return" id="btnReturn"><i class="fa-solid fa-rotate-left"></i> חזור למפקדה</button>
+    </main>
+
+    <script>
+        // ==========================================
+        // 1. Voice & Sound Initialization
+        // ==========================================
+        const voice = {
+            initialized: false,
+            init: () => {
+                if(voice.initialized || !window.speechSynthesis) return;
+                const u = new SpeechSynthesisUtterance('');
+                u.volume = 0; window.speechSynthesis.speak(u);
+                voice.initialized = true;
+            },
+            speak: (text) => {
+                if(!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance(text);
+                msg.lang = 'he-IL'; msg.rate = 1.1; msg.pitch = 0.9;
+                window.speechSynthesis.speak(msg);
+            }
+        };
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const sounds = {
+            playBeep: (freq, type, vol, dur) => {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            },
+            alert: () => { sounds.playBeep(400, 'square', 0.2, 0.3); setTimeout(() => sounds.playBeep(500, 'square', 0.2, 0.3), 150); },
+            siren: () => {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const dur = 2.0; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = 'square';
+                for(let i=0; i<4; i++) { osc.frequency.setValueAtTime(600, audioCtx.currentTime + i*0.5); osc.frequency.setValueAtTime(800, audioCtx.currentTime + i*0.5 + 0.25); }
+                gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime + dur - 0.05); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + dur);
+            },
+            boing: () => {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(300, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.6);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.05); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+            },
+            click: () => { sounds.playBeep(800, 'sine', 0.1, 0.1); voice.init(); },
+            deploy: () => { sounds.playBeep(150, 'sawtooth', 0.5, 0.8); sounds.playBeep(600, 'square', 0.1, 0.3); },
+            horn: () => { 
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                // A richer, deeper horn sound for trucks/ships
+                [100, 150, 200].forEach(freq => {
+                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.2);
+                    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 1.2);
+                });
+            },
+            snap: () => sounds.playBeep(1000, 'sine', 0.3, 0.1),
+            success: () => { [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => { setTimeout(() => sounds.playBeep(freq, 'sine', 0.3, 0.2), i * 150); }); }
+        };
+
+        // ==========================================
+        // 2. Progression System
+        // ==========================================
+        let playerXP = parseInt(localStorage.getItem('rescueSquadXP') || '0');
+        let purchasedUpgrades = JSON.parse(localStorage.getItem('rescueSquadUpgrades') || '{}');
+        
+        const upgradesDB = [
+            { id: 'titan-gold', title: 'שריון טיטניום מוזהב (טיטאן)', desc: 'שדרוג סגסוגת המעניק לטיטאן מראה זהוב יוקרתי.', cost: 300, icon: 'fa-shield' },
+            { id: 'scorpion-red', title: 'כננת טורבו אדומה (עקרב)', desc: 'שדרוג מראה וחיזוק הכננת הקדמית של באגי העקרב.', cost: 200, icon: 'fa-bolt' }
+        ];
+
+        function updateXpDisplay() {
+            document.getElementById('headerXp').innerText = playerXP;
+            if(document.getElementById('garageXp')) document.getElementById('garageXp').innerText = playerXP;
+        }
+
+        function addXP(amount) {
+            playerXP += amount;
+            localStorage.setItem('rescueSquadXP', playerXP);
+            updateXpDisplay();
+        }
+
+        function applyPurchasedUpgrades() {
+            if(purchasedUpgrades['titan-gold']) document.body.classList.add('upg-titan-gold');
+            if(purchasedUpgrades['scorpion-red']) document.body.classList.add('upg-scorpion-red');
+        }
+
+        function renderGarage() {
+            const list = document.getElementById('upgradeList');
+            list.innerHTML = '';
+            upgradesDB.forEach(upg => {
+                const isBought = purchasedUpgrades[upg.id];
+                const canAfford = playerXP >= upg.cost;
+                let btnHtml = isBought ? `<button class="btn-buy purchased" disabled><i class="fa-solid fa-check"></i> מותקן</button>` 
+                                       : `<button class="btn-buy" onclick="buyUpgrade('${upg.id}', ${upg.cost})" ${canAfford ? '' : 'disabled'}>${upg.cost} XP</button>`;
+                list.innerHTML += `
+                    <div class="upgrade-item">
+                        <div class="upgrade-info"><div class="upgrade-icon"><i class="fa-solid ${upg.icon}"></i></div><div class="upgrade-text"><h4>${upg.title}</h4><p>${upg.desc}</p></div></div>
+                        ${btnHtml}
+                    </div>`;
+            });
+            updateXpDisplay();
+        }
+
+        window.buyUpgrade = function(id, cost) {
+            if(playerXP >= cost && !purchasedUpgrades[id]) {
+                sounds.success(); addXP(-cost); purchasedUpgrades[id] = true;
+                localStorage.setItem('rescueSquadUpgrades', JSON.stringify(purchasedUpgrades));
+                applyPurchasedUpgrades(); renderGarage();
+            } else { sounds.alert(); }
+        };
+
+        document.getElementById('btnOpenGarage').addEventListener('click', () => { sounds.click(); renderGarage(); document.getElementById('garageOverlay').style.display = 'flex'; });
+        document.getElementById('btnCloseGarage').addEventListener('click', () => { sounds.click(); document.getElementById('garageOverlay').style.display = 'none'; });
+
+        updateXpDisplay(); applyPurchasedUpgrades();
+
+        // ==========================================
+        // 3. Weather System
+        // ==========================================
+        const weathers = ['clear', 'rain', 'night'];
+        let currentWeather = weathers[Math.floor(Math.random() * weathers.length)];
+        document.body.classList.add(`weather-${currentWeather}`);
+
+        // ==========================================
+        // 4. Mission Logic & Data
+        // ==========================================
+        const missionsData = [
+            {
+                id: 'cat', title: 'חילוץ מגובה: אזרח לכוד',
+                desc: 'דיווח: חתול תופס מחסה על מבנה גבוה. נדרש סולם טקטי ויכולת טיפוס.', meta: 'נ.צ: אזור עירוני | דחיפות: צהובה',
+                reqVeh: 'titan', actionTitle: 'פריסת סולם טקטי', toolIcon: 'fa-ruler-vertical', toolColor: 'var(--neon-orange)', btnText: 'טפס עוד שלב!',
+                alertIcon: '<i class="fa-solid fa-cat"></i>', actionSteps: 3, xpReward: 150,
+                setupHazard: (container, isFaceLeft) => {
+                    container.innerHTML = `<div class="cat-tree" style="${isFaceLeft ? 'border-left: 50px solid #334155; border-right: none; left: 0;' : 'border-right: 50px solid #334155; border-left: none; right: 0;'} position: absolute; width:100%; height:100%;"></div>
+                                           <div class="cat-character" id="trappedCat" style="position:absolute; top:10%; ${isFaceLeft ? 'left:0;' : 'right:0;'} font-size:80px; transition: transform 2s;"><i class="fa-solid fa-cat" style="color:#f59e0b"></i></div>
+                                           <div class="drop-target" style="position:absolute; top:20%; ${isFaceLeft ? 'left:60px;' : 'right:60px;'}" id="dropTarget"><i class="fa-solid fa-crosshairs fa-spin"></i></div>
+                                           <div class="animated-hero" id="animHero" style="position:absolute; bottom:0; ${isFaceLeft ? 'left:40px;' : 'right:40px;'} font-size:90px; color:var(--neon-purple); display:none; transition: all 2s;"><i class="fa-solid fa-person-running"></i></div>`;
+                },
+                onStep: (step, isFaceLeft) => {
+                    const hero = document.getElementById('animHero'); hero.style.display = 'block'; hero.style.bottom = (step * 25) + '%';
+                }
+            },
+            {
+                id: 'mud', title: 'חילוץ שטח: רכב טובעני',
+                desc: 'דיווח: רכב שקוע בבוץ סמיך. נדרש כוח גרירה ורכב שטח כבד.', meta: 'נ.צ: יערות הדרום | דחיפות: כתומה',
+                reqVeh: 'scorpion', actionTitle: 'משיכת כננת כוח', toolIcon: 'fa-link', toolColor: 'var(--neon-blue)', btnText: '',
+                alertIcon: '<i class="fa-solid fa-car-burst"></i>', actionSteps: 5, xpReward: 200,
+                setupHazard: (container, isFaceLeft) => {
+                    container.innerHTML = `<div class="mud-pit" style="position:absolute; bottom:0; width:100%; height:35%; background:#451a03; border-radius:50% 50% 0 0;"></div>
+                                           <div class="trapped-car" id="trappedCar" style="position:absolute; bottom:10%; ${isFaceLeft ? 'left:25%;' : 'right:25%;'} font-size:150px; color:#9ca3af; transition: transform 2s;"><i class="fa-solid fa-car"></i></div>
+                                           <div class="drop-target" style="position:absolute; bottom:15%; ${isFaceLeft ? 'left:40%;' : 'right:40%;'}" id="dropTarget"><i class="fa-solid fa-crosshairs fa-spin"></i></div>`;
+                },
+                hasCustomMiniGame: true,
+                startMiniGame: (btn, onComplete, isFaceLeft) => {
+                    const ui = document.createElement('div'); ui.className = 'minigame-ui'; ui.style.display = 'block';
+                    ui.innerHTML = `<div style="color:var(--neon-orange); font-weight:bold; font-size:18px;">כוח משיכה - פמפם מהר!</div><div class="meter-container"><div class="meter-fill" id="pullProgress" style="background:var(--neon-orange);"></div></div>`;
+                    document.getElementById('missionScene').appendChild(ui);
+                    
+                    let pull = 0; let gameLoop; const car = document.getElementById('trappedCar'); btn.innerText = "פמפם משיכה!";
+                    
+                    const pump = (e) => {
+                        if(e.cancelable) e.preventDefault();
+                        pull += 12; sounds.playBeep(300, 'square', 0.1, 0.1);
+                        btn.style.transform = 'translate(-50%, -50%) scale(0.9)'; setTimeout(() => btn.style.transform = 'translate(-50%, -50%) scale(1)', 50);
+                    };
+                    btn.addEventListener('mousedown', pump); btn.addEventListener('touchstart', pump, {passive: false});
+                    
+                    gameLoop = setInterval(() => {
+                        pull -= 2.5; if(pull < 0) pull = 0; if(pull > 100) pull = 100;
+                        document.getElementById('pullProgress').style.width = pull + '%';
+                        const dir = isFaceLeft ? 1 : -1;
+                        car.style.transform = `translate(${dir * pull*2}px, -${pull*0.2}px) rotate(${dir * pull*0.1}deg)`;
+                        if(pull >= 100) { clearInterval(gameLoop); btn.removeEventListener('mousedown', pump); btn.removeEventListener('touchstart', pump); ui.remove(); btn.style.display = 'none'; onComplete(); }
+                    }, 50);
+                }
+            },
+            {
+                id: 'fire', title: 'כיבוי אש: שריפת חורש',
+                desc: 'דיווח: מוקד להבות מתפשט. נדרשת משאית תקיפה ודיכוי אש.', meta: 'נ.צ: פארק לאומי | דחיפות: אדומה',
+                reqVeh: 'titan', actionTitle: 'ויסות לחץ מים', toolIcon: 'fa-fire-extinguisher', toolColor: 'var(--neon-blue)', btnText: '',
+                alertIcon: '<i class="fa-solid fa-fire"></i>', actionSteps: 4, xpReward: 250,
+                setupHazard: (container, isFaceLeft) => {
+                    container.innerHTML = `<div class="fire-flames" id="fireFlames" style="position:absolute; bottom:0; left:0; width:100%; height:70%; background:linear-gradient(0deg, var(--neon-red), var(--neon-orange), transparent); clip-path:polygon(10% 100%, 20% 40%, 30% 80%, 50% 20%, 70% 90%, 80% 10%, 100% 100%); transition: height 1s;"></div>
+                                           <div class="drop-target" style="position:absolute; bottom:30%; ${isFaceLeft ? 'left:40%;' : 'right:40%;'}" id="dropTarget"><i class="fa-solid fa-crosshairs fa-spin"></i></div>`;
+                },
+                hasCustomMiniGame: true,
+                startMiniGame: (btn, onComplete) => {
+                    const ui = document.createElement('div'); ui.className = 'minigame-ui'; ui.style.display = 'block';
+                    ui.innerHTML = `<div style="color:var(--neon-orange); font-weight:bold; font-size:16px;">מד לחץ מים (שמור בירוק!)</div>
+                                    <div class="meter-container pressure-bg"><div class="pressure-indicator" id="pressurePointer"></div></div>
+                                    <div style="color:var(--neon-green); font-weight:bold; font-size:16px; margin-top:10px;">סטטוס כיבוי</div>
+                                    <div class="meter-container"><div class="meter-fill" id="fireProgress" style="background:var(--neon-green);"></div></div>`;
+                    document.getElementById('missionScene').appendChild(ui);
+                    
+                    let pressure = 0; let fireExtinguished = 0; let isHolding = false; let gameLoop; btn.innerText = "החזק מים!";
+                    
+                    const press = (e) => { if(e.cancelable) e.preventDefault(); isHolding = true; btn.style.transform = 'translate(-50%, -50%) scale(0.95)'; };
+                    const release = (e) => { if(e.cancelable) e.preventDefault(); isHolding = false; btn.style.transform = 'translate(-50%, -50%) scale(1)'; const mInner = document.getElementById('missionSvgHolder'); if(mInner) mInner.classList.remove('vehicle-wild'); };
+                    
+                    btn.addEventListener('mousedown', press); btn.addEventListener('touchstart', press, {passive: false});
+                    window.addEventListener('mouseup', release); window.addEventListener('touchend', release);
+
+                    gameLoop = setInterval(() => {
+                        if(isHolding) pressure += 4; else pressure -= 3;
+                        if(pressure < 0) pressure = 0; if(pressure > 100) pressure = 100;
+                        document.getElementById('pressurePointer').style.left = pressure + '%';
+                        
+                        const flames = document.getElementById('fireFlames');
+                        const mInner = document.getElementById('missionSvgHolder');
+                        
+                        if(pressure >= 25 && pressure <= 75) {
+                            fireExtinguished += 0.8;
+                            if(Math.random() > 0.5) sounds.playBeep(200 + Math.random()*50, 'noise', 0.1, 0.1); 
+                            if(mInner) mInner.classList.remove('vehicle-wild');
+                        } else if (pressure > 75) {
+                            if(mInner) mInner.classList.add('vehicle-wild'); sounds.playBeep(100, 'sawtooth', 0.1, 0.1); 
+                        } else { if(mInner) mInner.classList.remove('vehicle-wild'); }
+                        
+                        document.getElementById('fireProgress').style.width = fireExtinguished + '%';
+                        flames.style.height = (70 - (fireExtinguished * 0.7)) + '%';
+                        
+                        if(fireExtinguished >= 100) {
+                            clearInterval(gameLoop); btn.removeEventListener('mousedown', press); btn.removeEventListener('touchstart', press);
+                            window.removeEventListener('mouseup', release); window.removeEventListener('touchend', release);
+                            ui.remove(); if(mInner) mInner.classList.remove('vehicle-wild'); btn.style.display = 'none'; onComplete();
+                        }
+                    }, 50);
+                }
+            },
+            {
+                id: 'dog', title: 'חילוץ ממים: כלבלב על אי',
+                desc: 'דיווח: כלב נלכד על אי בנהר. נדרשת סירה וגלגל הצלה.', meta: 'נ.צ: אגם הצפון | דחיפות: צהובה',
+                reqVeh: 'manta', actionTitle: 'זריקת גלגל הצלה', toolIcon: 'fa-life-ring', toolColor: 'var(--neon-red)', btnText: 'משוך את הכלב!',
+                alertIcon: '<i class="fa-solid fa-water"></i>', actionSteps: 3, xpReward: 150,
+                setupHazard: (container, isFaceLeft) => {
+                    container.innerHTML = `<div class="river-scene" style="position:absolute; bottom:0; left:0; width:100%; height:50%; background:#0284c7; border-top:8px solid #0369a1;"></div>
+                                           <div class="small-island" style="position:absolute; bottom:30%; ${isFaceLeft ? 'left:25%;' : 'right:25%;'} width:180px; height:60px; background:#a16207; border-radius:90px 90px 0 0; z-index:5;"></div>
+                                           <div class="dog-character" id="trappedDog" style="position:absolute; bottom:80%; ${isFaceLeft ? 'left:40px;' : 'right:40px;'} font-size:70px; color:#fcd34d; z-index:10; transition:transform 1.5s;"><i class="fa-solid fa-dog"></i></div>
+                                           <div class="drop-target" style="position:absolute; bottom:40%; ${isFaceLeft ? 'left:20%;' : 'right:20%;'}" id="dropTarget"><i class="fa-solid fa-crosshairs fa-spin"></i></div>`;
+                },
+                onStep: (step, isFaceLeft) => { 
+                    const dir = isFaceLeft ? 1 : -1;
+                    document.getElementById('trappedDog').style.transform = `translate(${dir * 60 * step}px, -${13 * step}px)`; 
+                }
+            },
+            {
+                id: 'hiker', title: 'חילוץ מהר: מטייל לכוד',
+                desc: 'דיווח: מטייל נתקע על צוק גבוה. נדרש חילוץ מוסק עם סל הרמה.', meta: 'נ.צ: צוקי הנשר | דחיפות: כתומה',
+                reqVeh: 'hawk', actionTitle: 'הורדת סל חילוץ', toolIcon: 'fa-parachute-box', toolColor: 'var(--neon-orange)', btnText: 'העלה למסוק!',
+                alertIcon: '<i class="fa-solid fa-mountain"></i>', actionSteps: 4, xpReward: 200,
+                setupHazard: (container, isFaceLeft) => {
+                    container.innerHTML = `<div class="mountain-cliff" style="position:absolute; bottom:0; ${isFaceLeft ? 'right:0; clip-path:polygon(0 100%, 100% 100%, 100% 0, 30% 0); border-left:8px solid #334155;' : 'left:0; clip-path:polygon(0 100%, 100% 100%, 70% 0, 0 0); border-right:8px solid #334155;'} width:80%; height:80%; background:#475569;"></div>
+                                           <div class="hiker-character" id="trappedHiker" style="position:absolute; top:10px; ${isFaceLeft ? 'left:35%;' : 'right:35%;'} font-size:80px; color:#f87171; transition:all 0.5s ease-in-out; z-index:10;"><i class="fa-solid fa-person-hiking"></i></div>
+                                           <div class="drop-target" style="position:absolute; top:15%; ${isFaceLeft ? 'left:40%;' : 'right:40%;'}" id="dropTarget"><i class="fa-solid fa-crosshairs fa-spin"></i></div>`;
+                },
+                onStep: (step, isFaceLeft) => { 
+                    const dir = isFaceLeft ? 1 : -1;
+                    const hiker = document.getElementById('trappedHiker');
+                    hiker.style.transform = `translate(${dir * 35 * step}px, -${25 * step}px)`; 
+                    if(step === 4) hiker.style.opacity = '0';
+                }
+            }
+        ];
+
+        let currentMission = null;
+        let isCurrentFacingLeft = false;
+        
+        // Physics logic variables
+        const vehiclePhysics = { titan: { facesLeft: false }, scorpion: { facesLeft: true }, hawk: { facesLeft: true }, manta: { facesLeft: true } };
+
+        const screens = { hq: document.getElementById('screen-hq'), transit: document.getElementById('screen-transit'), mission: document.getElementById('screen-mission'), success: document.getElementById('screen-success') };
+        function switchScreen(screenName) { Object.values(screens).forEach(s => s.classList.remove('active')); screens[screenName].classList.add('active'); }
+
+        // Start HQ Alert Function
+        function triggerAlert() {
+            let lastMissionId = sessionStorage.getItem('lastMissionId');
+            let availableMissions = missionsData.filter(m => m.id !== lastMissionId);
+            if (availableMissions.length === 0) availableMissions = missionsData;
+            currentMission = availableMissions[Math.floor(Math.random() * availableMissions.length)];
+            sessionStorage.setItem('lastMissionId', currentMission.id);
+            
+            const angle = Math.random() * Math.PI * 2; const radius = Math.random() * 40;
+            const blip = document.getElementById('radarBlip');
+            blip.style.top = (50 + radius * Math.sin(angle)) + '%'; blip.style.left = (50 + radius * Math.cos(angle)) + '%'; blip.classList.add('active');
+            
+            sounds.siren(); document.body.classList.add('alert-state');
+            
+            setTimeout(() => {
+                document.getElementById('alertOverlayIcon').innerHTML = currentMission.alertIcon || '<i class="fa-solid fa-triangle-exclamation fa-fade"></i>';
+                document.getElementById('alertOverlayTitle').innerText = currentMission.title;
+                document.getElementById('alertOverlayDesc').innerText = currentMission.desc;
+                document.getElementById('alertOverlayMeta').innerText = currentMission.meta;
+                document.getElementById('alertOverlay').style.display = 'flex';
+            }, 1000);
+        }
+
+        // Run first alert on load
+        setTimeout(triggerAlert, 1500);
+
+        document.getElementById('btnAcknowledgeAlert').addEventListener('click', () => {
+            sounds.click();
+            document.getElementById('alertOverlay').style.display = 'none';
+            document.querySelectorAll('.card').forEach(c => c.classList.add('interactive'));
+        });
+
+        // Selection Logic
+        let selectedChar = null; let selectedVehicle = null; let selectedVehicleVisual = '';
+        
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', () => {
+                if(!card.classList.contains('interactive')) return;
+                sounds.click();
+                const type = card.classList.contains('character-card') ? 'char' : 'vehicle';
+                document.querySelectorAll(`.${type === 'char' ? 'character' : 'vehicle'}-card`).forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                
+                if(type === 'char') {
+                    selectedChar = card.dataset.id;
+                } else {
+                    selectedVehicle = card.dataset.id;
+                    selectedVehicleVisual = card.querySelector('.card-visual').innerHTML;
+                }
+
+                if(selectedChar && selectedVehicle) {
+                    const btn = document.getElementById('btnDeploy');
+                    btn.disabled = false; btn.classList.add('ready');
+                }
+            });
+        });
+
+        // Deploy Logic
+        document.getElementById('btnDeploy').addEventListener('click', () => {
+            if(!document.getElementById('btnDeploy').classList.contains('ready')) return;
+            sounds.deploy();
+            voice.speak("צוות חילוץ עשר, יוצאים לדרך!");
+            document.body.classList.remove('alert-state');
+            
+            isCurrentFacingLeft = vehiclePhysics[selectedVehicle].facesLeft;
+            const isFlying = selectedVehicle === 'hawk';
+            const isWater = selectedVehicle === 'manta';
+
+            // Set up transit vehicle visually
+            document.getElementById('transitSvgHolder').innerHTML = selectedVehicleVisual;
+            const tVeh = document.getElementById('activeTransitVehicle');
+            tVeh.className = `transit-vehicle-container ${isCurrentFacingLeft ? 'pos-right' : 'pos-left'} ${isFlying ? 'flying-vehicle' : ''}`;
+            document.getElementById('transitHeadlightLeft').style.display = isCurrentFacingLeft ? 'block' : 'none';
+            document.getElementById('transitHeadlightRight').style.display = isCurrentFacingLeft ? 'none' : 'block';
+
+            // Parallax Direction & Environment Logic
+            const layerBack = document.getElementById('transitLayerBack');
+            const layerMid = document.getElementById('transitLayerMid');
+            const road = document.getElementById('transitRoad');
+            
+            layerBack.className = `parallax-layer layer-back ${isCurrentFacingLeft ? 'bg-scroll-left' : 'bg-scroll-right'}`;
+            layerMid.className = `parallax-layer layer-mid ${isCurrentFacingLeft ? 'bg-scroll-left' : 'bg-scroll-right'}`;
+            road.className = `transit-road ${isCurrentFacingLeft ? 'bg-scroll-left' : 'bg-scroll-right'} ${isWater ? 'water-mode' : ''}`;
+
+            // Set up mission vehicle
+            document.getElementById('missionSvgHolder').innerHTML = selectedVehicleVisual;
+            const mZone = document.getElementById('vehicleZone');
+            if (isFlying) {
+                mZone.classList.add('mission-flying');
+            } else {
+                mZone.classList.remove('mission-flying');
+            }
+            
+            document.getElementById('missionHeadlightLeft').style.display = isCurrentFacingLeft ? 'block' : 'none';
+            document.getElementById('missionHeadlightRight').style.display = isCurrentFacingLeft ? 'none' : 'block';
+
+            const missionScene = document.getElementById('missionScene');
+            missionScene.className = `mission-scene ${isCurrentFacingLeft ? 'layout-face-left' : 'layout-face-right'}`;
+
+            switchScreen('transit');
+            setTimeout(() => { switchScreen('mission'); initMissionAction(); }, 4000);
+        });
+
+        // Transit Interactions
+        const vehicleContainer = document.getElementById('activeTransitVehicle');
+        document.getElementById('btnHorn').addEventListener('click', () => {
+            sounds.horn();
+            vehicleContainer.style.transform = 'scale(1.1) translateY(-10px)';
+            setTimeout(() => vehicleContainer.style.transform = '', 200);
+        });
+
+        document.getElementById('btnLights').addEventListener('click', () => {
+            sounds.click();
+            vehicleContainer.classList.toggle('lights-on');
+            document.getElementById('btnLights').style.background = vehicleContainer.classList.contains('lights-on') ? 'var(--neon-blue)' : 'var(--bg-panel)';
+            document.getElementById('btnLights').style.color = vehicleContainer.classList.contains('lights-on') ? '#000' : 'var(--neon-blue)';
+        });
+
+        // Mission Action (Multi-step & Fail state)
+        function initMissionAction() {
+            document.getElementById('missionActionTitle').innerText = currentMission.actionTitle;
+            document.getElementById('missionTotalSteps').innerText = currentMission.actionSteps || 1;
+            document.getElementById('missionStepNum').innerText = 0;
+            
+            const hazardZone = document.getElementById('hazardZone');
+            currentMission.setupHazard(hazardZone, isCurrentFacingLeft);
+
+            // Fail-state mismatch check
+            if (selectedVehicle !== currentMission.reqVeh) {
+                sounds.boing();
+                
+                const mInner = document.getElementById('missionSvgHolder');
+                mInner.style.animation = 'none';
+                void mInner.offsetWidth; // trigger reflow
+                mInner.style.animation = 'comicFailBounce 1.5s ease-in-out forwards';
+                
+                setTimeout(() => {
+                    document.getElementById('mismatchOverlay').style.display = 'flex';
+                    voice.speak("אופס! הציוד לא מתאים לתוואי השטח. חוזרים למפקדה.");
+                    sounds.alert();
+                }, 1500);
+                return;
+            }
+
+            const tool = document.createElement('div');
+            tool.className = 'draggable-tool';
+            tool.innerHTML = `<i class="fa-solid ${currentMission.toolIcon}"></i>`;
+            tool.style.borderColor = currentMission.toolColor; tool.style.color = currentMission.toolColor;
+            tool.style.bottom = '10%'; tool.style.left = 'calc(50% - 50px)'; 
+            document.getElementById('vehicleZone').appendChild(tool);
+
+            setupDragAndDrop(tool, document.getElementById('dropTarget'), () => {
+                tool.classList.add('snapped'); sounds.snap();
+                document.getElementById('dropTarget').style.borderStyle = 'solid';
+                
+                let oldBtn = document.getElementById('btnFinalAction');
+                let newBtnAction = oldBtn.cloneNode(true);
+                oldBtn.parentNode.replaceChild(newBtnAction, oldBtn);
+                newBtnAction.style.display = 'block';
+                
+                const finishMission = () => {
+                    addXP(currentMission.xpReward || 150);
+                    document.getElementById('xpEarned').innerText = currentMission.xpReward || 150;
+                    setTimeout(() => { sounds.success(); switchScreen('success'); voice.speak("כל הכבוד! הצלתם את המצב."); }, 1500);
+                };
+
+                if(currentMission.hasCustomMiniGame) {
+                    currentMission.startMiniGame(newBtnAction, finishMission, isCurrentFacingLeft);
+                } else {
+                    newBtnAction.innerText = currentMission.btnText;
+                    let currentStep = 0;
+                    newBtnAction.onclick = () => {
+                        sounds.click();
+                        currentStep++;
+                        document.getElementById('missionStepNum').innerText = currentStep;
+                        
+                        const scene = document.getElementById('missionScene');
+                        scene.style.transform = `translate(${Math.random()*10 - 5}px, ${Math.random()*10 - 5}px)`;
+                        setTimeout(() => scene.style.transform = '', 50);
+
+                        currentMission.onStep(currentStep, isCurrentFacingLeft);
+                        
+                        if (currentStep >= (currentMission.actionSteps || 1)) {
+                            newBtnAction.style.display = 'none';
+                            finishMission();
+                        }
+                    };
+                }
+            });
+        }
+
+        // Drag functionality
+        function setupDragAndDrop(element, target, onSuccess) {
+            let isDragging = false, startX, startY, initialLeft, initialTop;
+            const start = (e) => {
+                isDragging = true; const touch = e.type.includes('touch') ? e.touches[0] : e;
+                startX = touch.clientX; startY = touch.clientY;
+                const style = window.getComputedStyle(element);
+                initialLeft = parseInt(style.left, 10) || 0; initialTop = parseInt(style.top, 10) || 0;
+                element.style.transition = 'none'; element.style.zIndex = 100;
+            };
+            const move = (e) => {
+                if(!isDragging) return; const touch = e.type.includes('touch') ? e.touches[0] : e;
+                element.style.left = (initialLeft + touch.clientX - startX) + 'px'; element.style.top = (initialTop + touch.clientY - startY) + 'px';
+            };
+            const end = (e) => {
+                if(!isDragging) return; isDragging = false;
+                const rect1 = element.getBoundingClientRect(), rect2 = target.getBoundingClientRect();
+                const centerX = rect1.left + rect1.width/2, centerY = rect1.top + rect1.height/2;
+
+                if (centerX > rect2.left && centerX < rect2.right && centerY > rect2.top && centerY < rect2.bottom) {
+                    const parentRect = element.parentElement.getBoundingClientRect();
+                    element.style.transition = 'all 0.2s';
+                    element.style.left = (rect2.left - parentRect.left + rect2.width/2 - rect1.width/2) + 'px';
+                    element.style.top = (rect2.top - parentRect.top + rect2.height/2 - rect1.height/2) + 'px';
+                    onSuccess();
+                } else {
+                    element.style.transition = 'all 0.3s ease-out'; element.style.left = 'calc(50% - 50px)'; element.style.top = 'auto'; element.style.bottom = '10%';
+                }
+            };
+            element.addEventListener('mousedown', start); window.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
+            element.addEventListener('touchstart', start, {passive: false}); window.addEventListener('touchmove', move, {passive: false}); window.addEventListener('touchend', end);
+        }
+
+        function softReset() {
+            sounds.click(); 
+            
+            // איפוס תצוגות מוחלט
+            document.getElementById('radarBlip').classList.remove('active');
+            document.querySelectorAll('.card').forEach(c => { c.classList.remove('selected', 'interactive'); });
+            const btn = document.getElementById('btnDeploy');
+            btn.disabled = true; btn.classList.remove('ready');
+            selectedChar = null; selectedVehicle = null;
+            document.getElementById('mismatchOverlay').style.display = 'none';
+            document.getElementById('alertOverlay').style.display = 'none';
+            
+            // מחיקת שאריות ממשקי משימות
+            const ui = document.querySelector('.minigame-ui');
+            if(ui) ui.remove();
+            document.querySelectorAll('.draggable-tool').forEach(t => t.remove());
+            const finalBtn = document.getElementById('btnFinalAction');
+            if(finalBtn) finalBtn.style.display = 'none';
+
+            // מחיקת אנימציות פסילה וריחוף
+            const mInner = document.getElementById('missionSvgHolder');
+            if (mInner) {
+                mInner.style.animation = 'none';
+            }
+            document.getElementById('vehicleZone').classList.remove('mission-flying');
+            document.getElementById('transitRoad').classList.remove('water-mode');
+
+            // איפוס מזג אוויר
+            document.body.classList.remove('weather-clear', 'weather-rain', 'weather-night');
+            currentWeather = weathers[Math.floor(Math.random() * weathers.length)];
+            document.body.classList.add(`weather-${currentWeather}`);
+            
+            switchScreen('hq');
+            
+            // הכנת המשימה הבאה
+            setTimeout(triggerAlert, 1000);
+        }
+
+        document.getElementById('btnReturn').addEventListener('click', softReset);
+        document.getElementById('btnMismatchReturn').addEventListener('click', softReset);
+
+    </script>
+</body>
+</html>
