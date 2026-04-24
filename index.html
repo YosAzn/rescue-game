@@ -10,7 +10,8 @@
     <style>
         :root {
             --bg-dark: #07090f;
-            --bg-panel: #111827;
+            --bg-panel: rgba(17, 24, 39, 0.88);
+            --bg-panel-solid: #111827;
             --bg-panel-light: #1f2937;
             --neon-blue: #00f0ff;
             --neon-blue-dim: rgba(0, 240, 255, 0.2);
@@ -27,27 +28,30 @@
         }
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
-        body { margin: 0; padding: 0; background-color: var(--bg-dark); color: var(--text-main); font-family: 'Heebo', sans-serif; height: 100vh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; background-image: linear-gradient(rgba(7, 9, 15, 0.8), rgba(7, 9, 15, 0.9)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,240,255,0.03) 2px, rgba(0,240,255,0.03) 4px); }
+        
+        /* רקע חלק ונקי כדי שלא ייראה כמו כביש במפקדה */
+        body { margin: 0; padding: 0; background-color: var(--bg-dark); color: var(--text-main); font-family: 'Heebo', sans-serif; height: 100vh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; background-image: radial-gradient(circle at 50% 50%, #111827 0%, #07090f 100%); }
 
-        .screen { display: none; width: 100%; height: calc(100vh - 70px); flex-grow: 1; animation: fadeIn 0.5s ease-out; position: relative;}
-        .screen.active { display: flex; }
+        .screen { display: none !important; width: 100%; height: calc(100vh - 70px); flex-grow: 1; animation: fadeIn 0.5s ease-out; position: relative;}
+        .screen.active { display: flex !important; flex-direction: column; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
 
-        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15)); background-size: 100% 4px; pointer-events: none; z-index: 1000; }
+        /* Scanlines מעודנים שלא ייראו כמו כביש */
+        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1)); background-size: 100% 4px; pointer-events: none; z-index: 1000; opacity: 0.5;}
 
-        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: linear-gradient(90deg, var(--bg-panel) 0%, transparent 100%); border-bottom: 2px solid var(--bg-panel-light); height: 70px; z-index: 50;}
+        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 30px; background: linear-gradient(90deg, var(--bg-panel-solid) 0%, transparent 100%); border-bottom: 2px solid var(--bg-panel-light); height: 70px; flex: 0 0 70px; z-index: 50;}
         .logo { font-size: 28px; font-weight: 900; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
         .logo i { color: var(--neon-red); font-size: 32px; filter: drop-shadow(0 0 5px var(--neon-red)); }
-        .status-bar { display: flex; gap: 20px; font-family: 'JetBrains Mono', monospace; color: var(--neon-blue); font-size: 16px; }
-        .status-item { display: flex; align-items: center; gap: 8px; background: var(--neon-blue-dim); padding: 8px 20px; clip-path: var(--cut-corner-small); }
+        .status-bar { display: flex; align-items: center; gap: 15px; font-family: 'JetBrains Mono', monospace; color: var(--neon-blue); font-size: 16px; }
+        .status-item { display: flex; align-items: center; gap: 8px; background: var(--neon-blue-dim); padding: 8px 15px; clip-path: var(--cut-corner-small); }
 
         /* XP Counter and Garage Styles */
         .xp-counter { border: 1px solid var(--neon-orange); color: var(--neon-orange); background: rgba(245, 158, 11, 0.1); font-weight: bold; }
-        .btn-garage { background: transparent; border: 2px solid var(--neon-purple); color: var(--neon-purple); padding: 15px; margin: 15px 20px 0 20px; clip-path: var(--cut-corner-small); cursor: pointer; font-family: 'Heebo', sans-serif; font-size: 18px; font-weight: bold; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-garage { background: var(--bg-panel-light); border: 2px solid var(--neon-purple); color: var(--neon-purple); padding: 8px 15px; clip-path: var(--cut-corner-small); cursor: pointer; font-family: 'Heebo', sans-serif; font-size: 16px; font-weight: bold; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0;}
         .btn-garage:hover { background: var(--neon-purple); color: #000; box-shadow: 0 0 15px var(--neon-purple-dim); }
         
         .garage-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 200; justify-content: center; align-items: center; }
-        .garage-modal { background: var(--bg-panel); border: 2px solid var(--neon-blue); padding: 30px; clip-path: var(--cut-corner); width: 600px; color: white; display: flex; flex-direction: column; gap: 20px; max-height: 90vh;}
+        .garage-modal { background: var(--bg-panel-solid); border: 2px solid var(--neon-blue); padding: 30px; clip-path: var(--cut-corner); width: 600px; color: white; display: flex; flex-direction: column; gap: 20px; max-height: 90vh;}
         .garage-modal h2 { margin: 0; color: var(--neon-blue); font-size: 32px; border-bottom: 1px solid var(--neon-blue-dim); padding-bottom: 10px;}
         .upgrade-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto;}
         .upgrade-item { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--bg-panel-light); padding: 20px; background: rgba(0,0,0,0.3); transition: all 0.2s;}
@@ -67,7 +71,6 @@
         body.upg-titan-gold [data-vehicle-id="titan"] svg polygon[fill="#7f1d1d"] { fill: #b45309 !important; }
         body.upg-scorpion-red [data-id="scorpion"] svg path[stroke="#9ca3af"],
         body.upg-scorpion-red [data-vehicle-id="scorpion"] svg path[stroke="#9ca3af"] { stroke: #ef4444 !important; filter: drop-shadow(0 0 5px #ef4444); }
-        
         body.upg-rhino-blade [data-id="rhino"] svg path,
         body.upg-rhino-blade [data-vehicle-id="rhino"] svg path { fill: #00f0ff !important; filter: drop-shadow(0 0 5px #00f0ff); }
         body.upg-dolphin-neon [data-id="dolphin"] svg path[stroke="#38bdf8"],
@@ -76,7 +79,6 @@
         /* Weather Overlays */
         .weather-night-overlay { display: none; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0, 5, 20, 0.7); pointer-events: none; z-index: 8; }
         body.weather-night .weather-night-overlay { display: block; }
-        
         .weather-rain-overlay { display: none; position: absolute; top:0; left:0; width:100%; height:100%; background-image: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.2) 1px, transparent 1px); background-size: 100% 50px; animation: rainFall 0.3s linear infinite; pointer-events: none; z-index: 15; opacity: 0.6; }
         body.weather-rain .weather-rain-overlay { display: block; }
         @keyframes rainFall { from {background-position: 0 0;} to {background-position: 0 500px;} }
@@ -87,60 +89,115 @@
         .beam-left { right: 80%; background: linear-gradient(-90deg, rgba(255,255,200,0.6), transparent); clip-path: polygon(100% 30%, 0 0, 0 100%, 100% 70%); }
         .beam-right { left: 80%; background: linear-gradient(90deg, rgba(255,255,200,0.6), transparent); clip-path: polygon(0 30%, 100% 0, 100% 100%, 0 70%); }
 
-        /* ================= SCREEN 1: HQ ================= */
-        #screen-hq { grid-template-columns: 1fr 2.5fr; gap: 20px; padding: 20px 30px; }
-        .panel { background-color: var(--bg-panel); border: 1px solid var(--bg-panel-light); clip-path: var(--cut-corner); display: flex; flex-direction: column; position: relative; }
-        .panel-header { background-color: var(--bg-panel-light); padding: 15px 20px; font-weight: 900; font-size: 18px; letter-spacing: 1px; color: var(--text-muted); border-bottom: 1px solid var(--neon-blue-dim); }
+        /* ================= SCREEN 1: HQ (NO SCROLLING - FLEX/GRID STRICT) ================= */
+        #screen-hq { gap: 15px; padding: 15px; position: relative; overflow: hidden; height: calc(100vh - 70px); box-sizing: border-box; }
         
-        .radar-container { flex-grow: 1; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle, rgba(0,240,255,0.1) 0%, transparent 70%); border-bottom: 1px solid var(--bg-panel-light); position: relative;}
-        .radar { width: 250px; height: 250px; border-radius: 50%; border: 2px solid var(--neon-blue-dim); position: relative; background: linear-gradient(90deg, transparent 49%, var(--neon-blue-dim) 50%, transparent 51%), linear-gradient(0deg, transparent 49%, var(--neon-blue-dim) 50%, transparent 51%); }
+        /* אזור דיווח משימה עליון (לא גליל) */
+        #persistentBriefing { 
+            flex: 0 0 auto; /* לא יתכווץ ולא יגדל */
+            width: 100%; 
+            padding: 15px 25px; 
+            font-size: 24px; 
+            color: var(--neon-orange); 
+            font-weight: 900; 
+            text-align: center; 
+            background: rgba(245, 158, 11, 0.08); 
+            border: 1px solid var(--neon-orange);
+            clip-path: var(--cut-corner-small);
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            line-height: 1.4; 
+            z-index: 10;
+            box-sizing: border-box;
+        }
+
+        /* קונטיינר מרכזי שמכיל את הרדאר ואת בחירת הצוות ללא גלילה */
+        .hq-content { display: flex; gap: 15px; flex: 1 1 0; min-height: 0; box-sizing: border-box;}
+
+        /* אזור הרדאר / כפתור הזנקה */
+        .radar-panel-container { 
+            flex: 0 0 35%; /* תופס 35% מהרוחב תמיד */
+            max-width: 400px;
+            background-color: var(--bg-panel); 
+            border: 1px solid var(--bg-panel-light); 
+            clip-path: var(--cut-corner); 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            z-index: 10; 
+            transition: all 0.3s ease;
+            min-height: 0;
+        }
+
+        .radar-panel-container.ready-to-deploy {
+            border-color: var(--neon-red);
+            box-shadow: 0 0 30px var(--neon-red-dim) inset;
+            cursor: pointer;
+            animation: pulseRadarDeploy 1.5s infinite alternate;
+        }
+        
+        .radar-panel-container.ready-to-deploy:active { transform: scale(0.98); }
+
+        @keyframes pulseRadarDeploy {
+            from { box-shadow: 0 0 10px var(--neon-red-dim) inset, 0 0 0 transparent; }
+            to { box-shadow: 0 0 40px rgba(239, 68, 68, 0.4) inset, 0 0 20px rgba(239, 68, 68, 0.2); }
+        }
+
+        .radar-container { flex: 1 1 0; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; min-height: 0;}
+        .radar { width: 100%; max-width: 250px; aspect-ratio: 1/1; height: auto; border-radius: 50%; border: 2px solid var(--neon-blue-dim); position: relative; background: linear-gradient(90deg, transparent 49%, var(--neon-blue-dim) 50%, transparent 51%), linear-gradient(0deg, transparent 49%, var(--neon-blue-dim) 50%, transparent 51%); transition: all 0.3s;}
+        
+        .radar-panel-container.ready-to-deploy .radar { border-color: var(--neon-red); background: linear-gradient(90deg, transparent 49%, rgba(239, 68, 68, 0.3) 50%, transparent 51%), linear-gradient(0deg, transparent 49%, rgba(239, 68, 68, 0.3) 50%, transparent 51%); }
         .scanner { position: absolute; top: 50%; left: 50%; width: 50%; height: 50%; background: conic-gradient(from 0deg, transparent 70%, var(--neon-blue) 100%); transform-origin: 0% 0%; animation: scan 4s linear infinite; }
+        .radar-panel-container.ready-to-deploy .scanner { background: conic-gradient(from 0deg, transparent 70%, var(--neon-red) 100%); animation: scan 2s linear infinite; }
+
         @keyframes scan { 100% { transform: rotate(360deg); } }
         .blip { position: absolute; width: 16px; height: 16px; background-color: var(--neon-red); border-radius: 50%; box-shadow: 0 0 15px var(--neon-red); opacity: 0; }
         .blip.active { animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 1; }
         @keyframes ping { 75%, 100% { transform: scale(2.5); opacity: 0; } }
 
-        /* הגדלת פונטים משימה נוכחית */
-        #persistentBriefing {
-            padding: 20px; 
-            font-size: 26px; 
-            color: var(--neon-orange); 
-            font-weight: 900; 
-            text-align: center; 
-            background: rgba(245, 158, 11, 0.05); 
-            min-height: 120px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            border-bottom: 1px solid var(--bg-panel-light);
-            line-height: 1.4;
+        /* טקסט הזנקה שמופיע על הרדאר */
+        .deploy-text-overlay {
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: white; font-size: 32px; font-weight: 900; text-align: center; text-shadow: 0 0 20px var(--neon-red), 0 0 10px black;
+            pointer-events: none; width: 100%; z-index: 20; line-height: 1.2;
         }
 
-        /* חלון התרעה מרכזי וגדול (Visual Pop-up Alert) */
-        .alert-overlay { display: none; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; flex-direction: column; }
-        .alert-box-v2 { background: var(--bg-panel); border: 4px solid var(--neon-red); padding: 40px; text-align: center; clip-path: var(--cut-corner); box-shadow: 0 0 50px var(--neon-red-dim); animation: popInAlert 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; max-width: 600px; }
-        @keyframes popInAlert { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .alert-box-v2 .alert-icon { font-size: 90px; color: var(--neon-red); margin-bottom: 20px; filter: drop-shadow(0 0 15px var(--neon-red)); }
-        .alert-box-v2 h2 { font-size: 38px; color: var(--neon-red); margin: 0 0 15px 0; font-weight: 900;}
-        .alert-box-v2 p { font-size: 24px; color: white; margin: 0 0 10px 0; line-height: 1.4;}
-        .alert-box-v2 .alert-meta { font-size: 18px; color: var(--neon-orange); margin-bottom: 30px; font-family: 'JetBrains Mono', monospace;}
-        .alert-box-v2 button { background: var(--neon-red); color: white; font-size: 26px; padding: 15px 40px; border: none; clip-path: var(--cut-corner-small); cursor: pointer; font-weight: bold; transition: transform 0.1s;}
-        .alert-box-v2 button:active { transform: scale(0.95); }
-        
-        body.alert-state { animation: redAlertScreen 1s infinite alternate; }
-        @keyframes redAlertScreen { from { box-shadow: inset 0 0 0px var(--neon-red); } to { box-shadow: inset 0 0 60px var(--neon-red-dim); } }
+        .radar-panel-container.ready-to-deploy .deploy-text-overlay { display: block; }
+        .radar-panel-container.ready-to-deploy .panel-header { background-color: rgba(239, 68, 68, 0.2); color: white; border-bottom-color: var(--neon-red);}
 
-        .loadout-panel { display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-bottom: 10px;}
-        /* שינוי גריד ל-3 טורים כדי להכיל יותר דמויות ורכבים */
-        .selection-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 15px; }
-        .card { background-color: var(--bg-dark); border: 2px solid var(--bg-panel-light); clip-path: var(--cut-corner-small); cursor: pointer; transition: all 0.2s; position: relative; opacity: 0.5; display: flex; flex-direction: column; pointer-events: none;}
+        /* אזור בחירת הצוות והרכבים (ללא גלילה - מותאם למסך מלא) */
+        .loadout-container { flex: 1 1 0; display: flex; flex-direction: column; gap: 15px; min-width: 0; min-height: 0;}
+        .loadout-panel { background-color: var(--bg-panel); border: 1px solid var(--bg-panel-light); clip-path: var(--cut-corner); display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; overflow: hidden;}
+        .panel-header { background-color: var(--bg-panel-light); padding: 8px 20px; font-weight: 900; font-size: 16px; letter-spacing: 1px; color: var(--text-muted); border-bottom: 1px solid var(--neon-blue-dim); flex: 0 0 auto;}
+
+        /* גריד שמונע גלילה ומכניס 6 טורים בדיוק */
+        .selection-grid-compact { 
+            display: grid; 
+            grid-template-columns: repeat(6, 1fr); 
+            gap: 10px; 
+            padding: 10px; 
+            flex: 1 1 0; 
+            min-height: 0;
+            box-sizing: border-box;
+        }
+
+        .card { 
+            background-color: var(--bg-dark); border: 2px solid var(--bg-panel-light); 
+            clip-path: var(--cut-corner-small); cursor: pointer; transition: all 0.2s; 
+            opacity: 0.5; pointer-events: none;
+            display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+        }
         .card.interactive { opacity: 1; pointer-events: auto; }
-        .card.selected { border-color: var(--neon-orange); background: linear-gradient(45deg, var(--bg-dark), rgba(245, 158, 11, 0.1)); box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.2); }
+        .card.selected { border-color: var(--neon-orange); background: linear-gradient(45deg, var(--bg-dark), rgba(245, 158, 11, 0.1)); box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.2); opacity: 1;}
         
-        .card-visual { height: 110px; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 70%); padding: 10px; position: relative;}
-        .card-visual svg { width: 100%; height: 100%; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.8)); transition: all 0.2s; }
-        .card-visual img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.8)); }
-        .card.selected .card-visual svg, .card.selected .card-visual img { filter: drop-shadow(0 0 10px currentColor); transform: scale(1.1); }
+        .card-visual { 
+            flex: 1 1 0; min-height: 0; display: flex; justify-content: center; align-items: center; 
+            background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 70%); 
+            padding: 5px; position: relative;
+        }
+        .card-visual svg { height: 100%; width: 100%; max-height: 100px; object-fit: contain; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.8)); transition: all 0.2s; }
+        .card.selected .card-visual svg { filter: drop-shadow(0 0 10px currentColor); transform: scale(1.15); }
         
         /* Advanced SVG Outlines */
         svg polygon, svg path, svg rect, svg circle { stroke: #111; stroke-width: 2; stroke-linejoin: round; }
@@ -154,17 +211,26 @@
         .card[data-id="hawk"] { color: var(--neon-blue); } .card[data-id="manta"] { color: var(--neon-green); }
         .card[data-id="rhino"] { color: #94a3b8; } .card[data-id="dolphin"] { color: #0284c7; }
 
-        .card-info { padding: 10px; text-align: center; background-color: rgba(0,0,0,0.6); border-top: 1px solid rgba(255,255,255,0.05); margin-top: auto;}
-        .card-name { font-weight: 900; font-size: 18px; margin-bottom: 2px; color: var(--text-main); }
-        .card-role { font-size: 12px; color: var(--text-tech); font-family: 'JetBrains Mono', monospace; }
+        .card-info { padding: 5px; text-align: center; background-color: rgba(0,0,0,0.6); border-top: 1px solid rgba(255,255,255,0.05); flex: 0 0 auto;}
+        .card-name { font-weight: 900; font-size: 14px; margin-bottom: 2px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .card-role { font-size: 10px; color: var(--text-tech); font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 
-        .action-area { margin-top: auto; display: flex; justify-content: flex-end; padding: 0 15px 15px; }
-        .btn-deploy { background-color: var(--bg-panel-light); color: var(--text-muted); border: 2px solid var(--text-muted); padding: 15px 40px; font-size: 26px; font-weight: 900; letter-spacing: 2px; clip-path: var(--cut-corner); transition: all 0.3s; display: flex; align-items: center; gap: 15px; opacity: 0.5; }
-        .btn-deploy.ready { background-color: rgba(239, 68, 68, 0.1); color: var(--neon-red); border-color: var(--neon-red); cursor: pointer; box-shadow: 0 0 20px var(--neon-red-dim); opacity: 1;}
-        .btn-deploy.ready:active { transform: scale(0.98); }
+        /* חלון התרעה מרכזי וגדול (Visual Pop-up Alert) */
+        .alert-overlay { display: none; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; flex-direction: column; }
+        .alert-box-v2 { background: var(--bg-panel-solid); border: 4px solid var(--neon-red); padding: 40px; text-align: center; clip-path: var(--cut-corner); box-shadow: 0 0 50px var(--neon-red-dim); animation: popInAlert 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; max-width: 600px; }
+        @keyframes popInAlert { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .alert-box-v2 .alert-icon { font-size: 90px; color: var(--neon-red); margin-bottom: 20px; filter: drop-shadow(0 0 15px var(--neon-red)); }
+        .alert-box-v2 h2 { font-size: 38px; color: var(--neon-red); margin: 0 0 15px 0; font-weight: 900;}
+        .alert-box-v2 p { font-size: 24px; color: white; margin: 0 0 10px 0; line-height: 1.4;}
+        .alert-box-v2 .alert-meta { font-size: 18px; color: var(--neon-orange); margin-bottom: 30px; font-family: 'JetBrains Mono', monospace;}
+        .alert-box-v2 button { background: var(--neon-red); color: white; font-size: 26px; padding: 15px 40px; border: none; clip-path: var(--cut-corner-small); cursor: pointer; font-weight: bold; transition: transform 0.1s;}
+        .alert-box-v2 button:active { transform: scale(0.95); }
+        
+        body.alert-state { animation: redAlertScreen 1s infinite alternate; }
+        @keyframes redAlertScreen { from { box-shadow: inset 0 0 0px var(--neon-red); } to { box-shadow: inset 0 0 60px var(--neon-red-dim); } }
 
         /* ================= SCREEN 2: TRANSIT ================= */
-        #screen-transit { background: linear-gradient(to bottom, #0f172a, #020617); position: relative; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 50px;}
+        #screen-transit { background: linear-gradient(to bottom, #0f172a, #020617); position: relative; overflow: hidden; justify-content: center; padding-bottom: 50px;}
         
         .parallax-layer { position: absolute; top: 0; left: 0; width: 300%; height: 100%; background-repeat: repeat-x; }
         .layer-back { background-image: radial-gradient(circle at 50% 80%, rgba(255,255,255,0.05) 0%, transparent 20%); background-size: 200px 100%; opacity: 0.3; }
@@ -211,12 +277,12 @@
         @keyframes flyBounce { from { transform: translateY(0) rotate(1deg); } to { transform: translateY(-30px) rotate(-1deg); } }
 
         .transit-controls { position: absolute; top: 30px; right: 30px; display: flex; gap: 20px; z-index: 20; }
-        .btn-transit { background: var(--bg-panel); border: 2px solid var(--neon-blue); color: var(--neon-blue); width: 100px; height: 100px; border-radius: 50%; font-size: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 15px var(--neon-blue-dim); transition: all 0.1s; }
+        .btn-transit { background: var(--bg-panel-solid); border: 2px solid var(--neon-blue); color: var(--neon-blue); width: 100px; height: 100px; border-radius: 50%; font-size: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 15px var(--neon-blue-dim); transition: all 0.1s; }
         .btn-transit:active { transform: scale(0.9); background: var(--neon-blue); color: #000; }
         .transit-title { position: absolute; top: 30px; left: 30px; font-family: 'JetBrains Mono', monospace; font-size: 40px; color: var(--neon-orange); text-shadow: 0 0 10px var(--neon-orange); z-index: 20;}
 
         /* ================= SCREEN 3: MISSION ACTION ================= */
-        #screen-mission { flex-direction: column; background: #0f172a; position: relative; }
+        #screen-mission { background: #0f172a; position: relative; overflow: hidden;}
         .mission-top-bar { display: flex; justify-content: space-between; padding: 25px 50px; background: rgba(0,0,0,0.6); border-bottom: 3px solid var(--neon-orange); z-index: 10;}
         .mission-title-action { font-size: 34px; color: var(--neon-orange); font-weight: 900; }
         .mission-top-bar .status-item { font-size: 20px; padding: 10px 25px;}
@@ -236,7 +302,7 @@
         .drop-target { position: absolute; width: 130px; height: 130px; border: 5px dashed var(--neon-orange); border-radius: 15px; display: flex; justify-content: center; align-items: center; background: rgba(245, 158, 11, 0.1); animation: pulseTarget 1s infinite alternate; z-index: 5;}
         @keyframes pulseTarget { from { opacity: 0.5; transform: scale(0.95); } to { opacity: 1; transform: scale(1.05); } }
         
-        .draggable-tool { position: absolute; width: 100px; height: 100px; background: var(--bg-panel); border: 3px solid var(--neon-blue); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 45px; color: var(--neon-blue); cursor: grab; z-index: 20; box-shadow: 0 0 20px var(--neon-blue-dim); }
+        .draggable-tool { position: absolute; width: 100px; height: 100px; background: var(--bg-panel-solid); border: 3px solid var(--neon-blue); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 45px; color: var(--neon-blue); cursor: grab; z-index: 20; box-shadow: 0 0 20px var(--neon-blue-dim); }
         .draggable-tool:active { cursor: grabbing; transform: scale(1.1); }
         .draggable-tool.snapped { border-color: var(--neon-green); color: var(--neon-green); box-shadow: 0 0 30px var(--neon-green); pointer-events: none; }
 
@@ -251,21 +317,6 @@
         .pressure-indicator { position: absolute; top: -2px; bottom: -2px; width: 8px; background: #fff; box-shadow: 0 0 15px #fff; left: 0%; transition: left 0.1s linear; transform: translateX(-50%); z-index: 5;}
         .vehicle-wild { animation: wildShake 0.1s infinite; filter: drop-shadow(0 0 30px #ef4444) !important; }
         @keyframes wildShake { 0% {transform: translate(5px, 5px) rotate(2deg) scale(1.5);} 50% {transform: translate(-5px, -5px) rotate(-2deg) scale(1.5);} 100% {transform: translate(5px, -5px) rotate(2deg) scale(1.5);} }
-
-        /* Comic Fail Animation */
-        @keyframes comicFailBounce {
-            0%   { transform: scale(1.5) translateY(0) rotate(0deg); }
-            20%  { transform: scale(1.5) translateY(-150px) rotate(-20deg); }
-            40%  { transform: scale(1.5) translateY(-150px) rotate(20deg); }
-            60%  { transform: scale(1.5) translateY(-150px) rotate(-20deg); }
-            80%  { transform: scale(1.5) translateY(40px) scaleY(0.4) rotate(0deg); }
-            100% { transform: scale(1.5) translateY(0) rotate(0deg) scaleY(1); }
-        }
-        .vehicle-fail-anim { animation: comicFailBounce 1.5s ease-in-out forwards; }
-
-        /* Mismatch overlay */
-        #mismatchOverlay { display: none; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); flex-direction: column; align-items: center; z-index: 50; background: rgba(0,0,0,0.9); padding: 50px; border: 4px solid var(--neon-red); clip-path: var(--cut-corner); box-shadow: 0 0 50px rgba(239,68,68,0.5);}
-        #mismatchOverlay h2 { color: var(--neon-red); font-size: 50px; margin: 0 0 20px 0; }
 
         /* Hazard Visuals */
         .cat-tree { width: 100%; height: 100%; border-right: 50px solid #334155; position: absolute; right:0;}
@@ -295,26 +346,12 @@
         /* ================= SCREEN 4: SUCCESS ================= */
         #screen-success { flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle, #051014, #000); text-align: center; }
         .success-title { font-size: 90px; color: var(--neon-green); font-family: 'JetBrains Mono', monospace; text-shadow: 0 0 30px var(--neon-green); margin-bottom: 30px; }
-        .stats-box { background: var(--bg-panel); border: 3px solid var(--neon-green); padding: 40px; clip-path: var(--cut-corner); width: 500px; margin-bottom: 50px; }
+        .stats-box { background: var(--bg-panel-solid); border: 3px solid var(--neon-green); padding: 40px; clip-path: var(--cut-corner); width: 500px; margin-bottom: 50px; }
         .stat-row { display: flex; justify-content: space-between; font-size: 26px; margin-bottom: 20px; font-family: 'JetBrains Mono'; border-bottom: 1px dashed #333; padding-bottom: 10px; }
         .stat-val { color: var(--neon-green); font-weight: 700; }
         .btn-return { background: transparent; border: 3px solid var(--neon-blue); color: var(--neon-blue); padding: 20px 50px; font-size: 28px; font-weight:bold; clip-path: var(--cut-corner); cursor: pointer; transition: all 0.2s; }
         .btn-return:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 30px var(--neon-blue-dim); }
 
-        /* ================= MEDIA QUERIES (iPad Landscape) ================= */
-        @media (max-width: 1180px) and (orientation: landscape) {
-            #screen-hq { padding: 15px; gap: 15px; grid-template-columns: 1fr 2fr; }
-            .hq-sidebar { width: 320px; }
-            .radar { width: 200px; height: 200px; }
-            .card-visual { height: 90px; }
-            .selection-grid { gap: 10px; padding: 10px; }
-            .btn-deploy { font-size: 22px; padding: 10px 20px; height: 60px; }
-            .mission-top-bar { padding: 15px 30px; }
-            .mission-area { padding: 20px; }
-            .garage-modal { padding: 20px; max-height: 90vh; overflow-y: auto;}
-            .upgrade-grid { max-height: 350px; }
-            #persistentBriefing { font-size: 20px; min-height: 100px; padding: 15px;}
-        }
     </style>
 </head>
 <body>
@@ -324,14 +361,13 @@
     <header>
         <div class="logo"><i class="fa-solid fa-shield-halved"></i> צוות חילוץ 10</div>
         <div class="status-bar">
+            <button class="btn-garage" id="btnOpenGarage"><i class="fa-solid fa-wrench"></i> מוסך שדרוגים</button>
             <div class="status-item"><i class="fa-solid fa-satellite-dish"></i> מערכת פעילה</div>
             <div class="status-item xp-counter"><span id="headerXp">0</span> XP <i class="fa-solid fa-star"></i></div>
         </div>
     </header>
 
-    <!-- SCREEN 1: HQ -->
     <main id="screen-hq" class="screen active">
-        <!-- Alert Overlay v2 (Central visual pop-up) -->
         <div class="alert-overlay" id="alertOverlay">
             <div class="alert-box-v2">
                 <div class="alert-icon" id="alertOverlayIcon"><i class="fa-solid fa-triangle-exclamation fa-fade"></i></div>
@@ -342,224 +378,215 @@
             </div>
         </div>
 
-        <div class="panel">
-            <div class="panel-header">מערכת התרעה (RADAR)</div>
-            <div class="radar-container" id="radarArea">
-                <div class="radar">
-                    <div class="scanner"></div>
-                    <div class="blip" id="radarBlip"></div>
-                </div>
-            </div>
+        <div id="persistentBriefing">מערכת ממתינה לאירוע...</div>
+
+        <div class="hq-content">
             
-            <div class="panel-header" style="border-top: 1px solid var(--neon-blue-dim);">המשימה הנוכחית (BRIEFING)</div>
-            <div id="persistentBriefing">מערכת ממתינה לאירוע...</div>
-            
-            <div class="briefing-area" style="display:flex; justify-content:center; align-items:center; margin-bottom: 10px;">
-                <button class="btn-garage" id="btnOpenGarage"><i class="fa-solid fa-wrench"></i> מוסך שדרוגים</button>
-            </div>
-        </div>
-
-        <div class="panel loadout-panel">
-            <div class="panel-header">בחירת איש צוות טקטי</div>
-            <div class="selection-grid">
-                <!-- V1 Original Cards -->
-                <div class="card character-card" data-id="benny">
-                    <div class="card-visual">
-                        <svg viewBox="0 0 100 100">
-                            <polygon points="10,90 15,45 35,30 65,30 85,45 90,90 65,100 35,100" fill="#7f1d1d" />
-                            <polygon points="35,30 65,30 50,15" fill="#991b1b" />
-                            <polygon points="25,50 75,50 65,85 35,85" fill="#1f2937" />
-                            <polygon points="35,45 65,45 55,20 45,20" fill="#991b1b" />
-                            <polygon points="38,50 62,50 58,70 42,70" fill="#ea580c" />
-                            <rect x="70" y="60" width="25" height="15" fill="#374151" />
-                            <polygon points="95,60 100,67 95,75" fill="#9ca3af" />
-                            <polygon points="45,80 55,80 50,90" fill="#00f0ff" stroke="none"/>
-                        </svg>
+            <div class="radar-panel-container" id="radarDeployBtn">
+                <div class="panel-header">מערכת התרעה (RADAR)</div>
+                <div class="radar-container">
+                    <div class="radar">
+                        <div class="scanner"></div>
+                        <div class="blip" id="radarBlip"></div>
+                        <div class="deploy-text-overlay">לחץ כאן<br>להזנקה!</div>
                     </div>
-                    <div class="card-info"><div class="card-name">בני</div><div class="card-role">מומחה פריצה</div></div>
-                </div>
-                <div class="card character-card" data-id="maya">
-                    <div class="card-visual">
-                        <svg viewBox="0 0 100 100">
-                            <polygon points="30,100 30,60 40,40 60,40 70,60 70,100" fill="#1f2937" />
-                            <polygon points="35,60 65,60 50,80" fill="#6d28d9" />
-                            <polygon points="35,45 65,45 60,20 40,20" fill="#4c1d95" />
-                            <rect x="40" y="30" width="20" height="8" fill="#a78bfa" />
-                        </svg>
-                    </div>
-                    <div class="card-info"><div class="card-name">מאיה</div><div class="card-role">סיירת וטיפוס</div></div>
-                </div>
-                <div class="card character-card" data-id="nuri">
-                    <div class="card-visual">
-                        <svg viewBox="0 0 100 100">
-                            <polygon points="25,100 25,65 40,45 60,45 75,65 75,100" fill="#164e63" />
-                            <rect x="35" y="65" width="30" height="25" fill="#0f766e" />
-                            <circle cx="50" cy="35" r="18" fill="#111827" />
-                            <circle cx="35" cy="35" r="8" fill="#00f0ff" />
-                            <path d="M35,35 L45,45" fill="none" stroke="#00f0ff" />
-                        </svg>
-                    </div>
-                    <div class="card-info"><div class="card-name">נורי</div><div class="card-role">אופרטור רחפנים</div></div>
-                </div>
-                <div class="card character-card" data-id="gal">
-                    <div class="card-visual">
-                        <svg viewBox="0 0 100 100">
-                            <polygon points="25,100 25,55 40,40 60,40 75,55 75,100" fill="#064e3b" />
-                            <circle cx="50" cy="35" r="16" fill="#111827" />
-                            <polygon points="40,35 60,35 55,50 45,50" fill="#059669" />
-                            <circle cx="50" cy="40" r="4" fill="#34d399" />
-                        </svg>
-                    </div>
-                    <div class="card-info"><div class="card-name">גל</div><div class="card-role">קומנדו ימי</div></div>
-                </div>
-                
-                <!-- NEW Characters (In Original V1 Complex SVG Style) -->
-                <div class="card character-card" data-id="ziv">
-                    <div class="card-visual">
-                        <svg viewBox="0 0 100 100">
-                           <polygon points="25,100 25,60 40,45 60,45 75,60 75,100" fill="#e2e8f0" />
-                           <polygon points="40,45 60,45 55,25 45,25" fill="#cbd5e1" />
-                           <rect x="42" y="65" width="16" height="16" fill="#ef4444" />
-                           <rect x="46" y="61" width="8" height="24" fill="white" />
-                           <rect x="38" y="69" width="24" height="8" fill="white" />
-                           <circle cx="50" cy="35" r="14" fill="#1f2937" />
-                           <path d="M35,35 L40,40" stroke="#ef4444" stroke-width="2" />
-                        </svg>
-                    </div>
-                    <div class="card-info"><div class="card-name">זיו</div><div class="card-role">פרמדיקית חילוץ</div></div>
-                </div>
-                <div class="card character-card" data-id="amitai">
-                    <div class="card-visual">
-                        <svg viewBox="0 0 100 100">
-                           <polygon points="20,100 20,55 35,40 65,40 80,55 80,100" fill="#eab308" />
-                           <rect x="35" y="40" width="30" height="20" fill="#ca8a04" />
-                           <circle cx="50" cy="35" r="16" fill="#eab308" />
-                           <rect x="38" y="30" width="24" height="10" fill="#111827" />
-                           <circle cx="43" cy="35" r="3" fill="#00f0ff" />
-                           <circle cx="57" cy="35" r="3" fill="#00f0ff" />
-                           <path d="M45,45 Q50,50 55,45" fill="none" stroke="#111827" stroke-width="2" />
-                        </svg>
-                    </div>
-                    <div class="card-info"><div class="card-name">אמיתי</div><div class="card-role">מומחה חומ"ס</div></div>
                 </div>
             </div>
 
-            <div class="panel-header" style="border-top: 1px solid var(--neon-blue-dim);">בחירת רכב משוריין</div>
-            <div class="selection-grid">
-                <!-- V1 Original Vehicles -->
-                <div class="card vehicle-card" data-id="titan">
-                    <div class="card-visual" id="titan-card-visual">
-                        <svg viewBox="0 0 120 70">
-                            <polygon points="5,55 5,30 20,30 35,20 85,20 95,35 95,55" fill="#991b1b" />
-                            <polygon points="5,45 95,45 90,65 15,65" fill="#374151" />
-                            <polygon points="65,20 80,20 85,35 65,35" fill="#1f2937" />
-                            <rect x="15" y="5" width="55" height="6" fill="#4b5563" />
-                            <rect x="15" y="11" width="55" height="2" fill="#1f2937" />
-                            <polygon points="20,5 10,25 30,25" fill="#991b1b" />
-                            <rect x="70" y="10" width="20" height="3" fill="#1f2937" />
-                            <rect x="70" y="15" width="20" height="3" fill="#1f2937" />
-                            <circle cx="72" cy="14" r="3" fill="#ef4444" />
-                            <rect x="40" y="38" width="10" height="2" fill="#00f0ff" stroke="none"/>
-                            <rect x="80" y="38" width="8" height="2" fill="#00f0ff" stroke="none"/>
-                            <circle cx="20" cy="60" r="9" fill="#111827" stroke="#4b5563"/>
-                            <circle cx="38" cy="60" r="9" fill="#111827" stroke="#4b5563"/>
-                            <circle cx="68" cy="60" r="9" fill="#111827" stroke="#4b5563"/>
-                            <circle cx="86" cy="60" r="9" fill="#111827" stroke="#4b5563"/>
-                        </svg>
+            <div class="loadout-container">
+                <div class="loadout-panel">
+                    <div class="panel-header">בחירת איש צוות טקטי</div>
+                    <div class="selection-grid-compact">
+                        <div class="card character-card" data-id="benny">
+                            <div class="card-visual">
+                                <svg viewBox="0 0 100 100">
+                                    <polygon points="10,90 15,45 35,30 65,30 85,45 90,90 65,100 35,100" fill="#7f1d1d" />
+                                    <polygon points="35,30 65,30 50,15" fill="#991b1b" />
+                                    <polygon points="25,50 75,50 65,85 35,85" fill="#1f2937" />
+                                    <polygon points="35,45 65,45 55,20 45,20" fill="#991b1b" />
+                                    <polygon points="38,50 62,50 58,70 42,70" fill="#ea580c" />
+                                    <rect x="70" y="60" width="25" height="15" fill="#374151" />
+                                    <polygon points="95,60 100,67 95,75" fill="#9ca3af" />
+                                    <polygon points="45,80 55,80 50,90" fill="#00f0ff" stroke="none"/>
+                                </svg>
+                            </div>
+                            <div class="card-info"><div class="card-name">בני</div><div class="card-role">מומחה פריצה</div></div>
+                        </div>
+                        <div class="card character-card" data-id="maya">
+                            <div class="card-visual">
+                                <svg viewBox="0 0 100 100">
+                                    <polygon points="30,100 30,60 40,40 60,40 70,60 70,100" fill="#1f2937" />
+                                    <polygon points="35,60 65,60 50,80" fill="#6d28d9" />
+                                    <polygon points="35,45 65,45 60,20 40,20" fill="#4c1d95" />
+                                    <rect x="40" y="30" width="20" height="8" fill="#a78bfa" />
+                                </svg>
+                            </div>
+                            <div class="card-info"><div class="card-name">מאיה</div><div class="card-role">סיירת וטיפוס</div></div>
+                        </div>
+                        <div class="card character-card" data-id="nuri">
+                            <div class="card-visual">
+                                <svg viewBox="0 0 100 100">
+                                    <polygon points="25,100 25,65 40,45 60,45 75,65 75,100" fill="#164e63" />
+                                    <rect x="35" y="65" width="30" height="25" fill="#0f766e" />
+                                    <circle cx="50" cy="35" r="18" fill="#111827" />
+                                    <circle cx="35" cy="35" r="8" fill="#00f0ff" />
+                                    <path d="M35,35 L45,45" fill="none" stroke="#00f0ff" />
+                                </svg>
+                            </div>
+                            <div class="card-info"><div class="card-name">נורי</div><div class="card-role">אופרטור רחפנים</div></div>
+                        </div>
+                        <div class="card character-card" data-id="gal">
+                            <div class="card-visual">
+                                <svg viewBox="0 0 100 100">
+                                    <polygon points="25,100 25,55 40,40 60,40 75,55 75,100" fill="#064e3b" />
+                                    <circle cx="50" cy="35" r="16" fill="#111827" />
+                                    <polygon points="40,35 60,35 55,50 45,50" fill="#059669" />
+                                    <circle cx="50" cy="40" r="4" fill="#34d399" />
+                                </svg>
+                            </div>
+                            <div class="card-info"><div class="card-name">גל</div><div class="card-role">קומנדו ימי</div></div>
+                        </div>
+                        <div class="card character-card" data-id="ziv">
+                            <div class="card-visual">
+                                <svg viewBox="0 0 100 100">
+                                   <polygon points="25,100 25,60 40,45 60,45 75,60 75,100" fill="#e2e8f0" />
+                                   <polygon points="40,45 60,45 55,25 45,25" fill="#cbd5e1" />
+                                   <rect x="42" y="65" width="16" height="16" fill="#ef4444" />
+                                   <rect x="46" y="61" width="8" height="24" fill="white" />
+                                   <rect x="38" y="69" width="24" height="8" fill="white" />
+                                   <circle cx="50" cy="35" r="14" fill="#1f2937" />
+                                   <path d="M35,35 L40,40" stroke="#ef4444" stroke-width="2" />
+                                </svg>
+                            </div>
+                            <div class="card-info"><div class="card-name">זיו</div><div class="card-role">פרמדיקית</div></div>
+                        </div>
+                        <div class="card character-card" data-id="amitai">
+                            <div class="card-visual">
+                                <svg viewBox="0 0 100 100">
+                                   <polygon points="20,100 20,55 35,40 65,40 80,55 80,100" fill="#eab308" />
+                                   <rect x="35" y="40" width="30" height="20" fill="#ca8a04" />
+                                   <circle cx="50" cy="35" r="16" fill="#eab308" />
+                                   <rect x="38" y="30" width="24" height="10" fill="#111827" />
+                                   <circle cx="43" cy="35" r="3" fill="#00f0ff" />
+                                   <circle cx="57" cy="35" r="3" fill="#00f0ff" />
+                                   <path d="M45,45 Q50,50 55,45" fill="none" stroke="#111827" stroke-width="2" />
+                                </svg>
+                            </div>
+                            <div class="card-info"><div class="card-name">אמיתי</div><div class="card-role">מומחה חומ"ס</div></div>
+                        </div>
                     </div>
-                    <div class="card-info"><div class="card-name">טיטאן</div><div class="card-role">משאית תקיפה</div></div>
                 </div>
 
-                <div class="card vehicle-card" data-id="scorpion">
-                    <div class="card-visual" id="scorpion-card-visual">
-                        <svg viewBox="0 0 100 100">
-                            <polygon points="15,65 15,50 40,40 70,40 90,55 90,65" fill="#ea580c" />
-                            <path d="M40,40 L30,20 L60,20 L70,40" fill="none" stroke="#374151" stroke-width="4" />
-                            <path d="M90,60 L100,60" stroke="#9ca3af" stroke-width="3" />
-                            <circle cx="25" cy="70" r="16" fill="#111827" stroke="#ea580c" stroke-width="4"/>
-                            <circle cx="75" cy="70" r="16" fill="#111827" stroke="#ea580c" stroke-width="4"/>
-                        </svg>
+                <div class="loadout-panel">
+                    <div class="panel-header">בחירת רכב משוריין</div>
+                    <div class="selection-grid-compact">
+                        <div class="card vehicle-card" data-id="titan">
+                            <div class="card-visual" id="titan-card-visual">
+                                <svg viewBox="0 0 120 70">
+                                    <polygon points="5,55 5,30 20,30 35,20 85,20 95,35 95,55" fill="#991b1b" />
+                                    <polygon points="5,45 95,45 90,65 15,65" fill="#374151" />
+                                    <polygon points="65,20 80,20 85,35 65,35" fill="#1f2937" />
+                                    <rect x="15" y="5" width="55" height="6" fill="#4b5563" />
+                                    <rect x="15" y="11" width="55" height="2" fill="#1f2937" />
+                                    <polygon points="20,5 10,25 30,25" fill="#991b1b" />
+                                    <rect x="70" y="10" width="20" height="3" fill="#1f2937" />
+                                    <rect x="70" y="15" width="20" height="3" fill="#1f2937" />
+                                    <circle cx="72" cy="14" r="3" fill="#ef4444" />
+                                    <rect x="40" y="38" width="10" height="2" fill="#00f0ff" stroke="none"/>
+                                    <rect x="80" y="38" width="8" height="2" fill="#00f0ff" stroke="none"/>
+                                    <circle cx="20" cy="60" r="9" fill="#111827" stroke="#4b5563"/>
+                                    <circle cx="38" cy="60" r="9" fill="#111827" stroke="#4b5563"/>
+                                    <circle cx="68" cy="60" r="9" fill="#111827" stroke="#4b5563"/>
+                                    <circle cx="86" cy="60" r="9" fill="#111827" stroke="#4b5563"/>
+                                </svg>
+                            </div>
+                            <div class="card-info"><div class="card-name">טיטאן</div><div class="card-role">משאית תקיפה</div></div>
+                        </div>
+
+                        <div class="card vehicle-card" data-id="scorpion">
+                            <div class="card-visual" id="scorpion-card-visual">
+                                <svg viewBox="0 0 100 100">
+                                    <polygon points="15,65 15,50 40,40 70,40 90,55 90,65" fill="#ea580c" />
+                                    <path d="M40,40 L30,20 L60,20 L70,40" fill="none" stroke="#374151" stroke-width="4" />
+                                    <path d="M90,60 L100,60" stroke="#9ca3af" stroke-width="3" />
+                                    <circle cx="25" cy="70" r="16" fill="#111827" stroke="#ea580c" stroke-width="4"/>
+                                    <circle cx="75" cy="70" r="16" fill="#111827" stroke="#ea580c" stroke-width="4"/>
+                                </svg>
+                            </div>
+                            <div class="card-info"><div class="card-name">עקרב</div><div class="card-role">באגי שטח</div></div>
+                        </div>
+
+                        <div class="card vehicle-card" data-id="hawk">
+                            <div class="card-visual" id="hawk-card-visual">
+                                <svg viewBox="0 0 100 100">
+                                    <polygon points="10,50 30,30 70,30 95,50 70,70 30,70" fill="#1f2937" />
+                                    <rect x="20" y="15" width="60" height="4" fill="#111827" />
+                                    <rect x="45" y="10" width="10" height="20" fill="#00f0ff" />
+                                    <polygon points="70,35 85,45 70,55" fill="#00f0ff" />
+                                </svg>
+                            </div>
+                            <div class="card-info"><div class="card-name">הוק</div><div class="card-role">מסוק חמקן</div></div>
+                        </div>
+
+                        <div class="card vehicle-card" data-id="manta">
+                            <div class="card-visual" id="manta-card-visual">
+                                <svg viewBox="0 0 100 100">
+                                    <rect x="10" y="60" width="80" height="15" rx="5" fill="#064e3b" />
+                                    <polygon points="15,60 25,40 70,40 85,60" fill="#059669" />
+                                    <polygon points="40,40 45,25 65,25 70,40" fill="#1f2937" />
+                                    <circle cx="25" cy="35" r="15" fill="#111827" stroke="#334155" stroke-width="3"/>
+                                </svg>
+                            </div>
+                            <div class="card-info"><div class="card-name">מנטה</div><div class="card-role">רחפת שטח</div></div>
+                        </div>
+                        
+                        <div class="card vehicle-card" data-id="rhino">
+                            <div class="card-visual" id="rhino-card-visual">
+                                <svg viewBox="0 0 120 70">
+                                   <polygon points="20,55 20,30 40,20 90,20 100,40 100,55" fill="#475569" />
+                                   <polygon points="45,25 75,25 80,35 40,35" fill="#1f2937" />
+                                   <rect x="50" y="27" width="20" height="6" fill="#00f0ff" stroke="none" opacity="0.8" />
+                                   <rect x="15" y="50" width="90" height="15" rx="5" fill="#111827" />
+                                   <circle cx="25" cy="57" r="5" fill="#334155" />
+                                   <circle cx="45" cy="57" r="5" fill="#334155" />
+                                   <circle cx="65" cy="57" r="5" fill="#334155" />
+                                   <circle cx="85" cy="57" r="5" fill="#334155" />
+                                   <path d="M10,60 L5,40 L15,25 L25,25 L20,40 L25,60 Z" fill="#eab308" />
+                                </svg>
+                            </div>
+                            <div class="card-info"><div class="card-name">ריינו</div><div class="card-role">דחפור כבד</div></div>
+                        </div>
+                        <div class="card vehicle-card" data-id="dolphin">
+                            <div class="card-visual" id="dolphin-card-visual">
+                                <svg viewBox="0 0 120 70">
+                                   <ellipse cx="60" cy="45" rx="45" ry="18" fill="#0284c7" />
+                                   <ellipse cx="60" cy="48" rx="40" ry="12" fill="#0369a1" />
+                                   <polygon points="55,27 65,27 60,10" fill="#0284c7" />
+                                   <polygon points="15,45 0,30 5,45 0,60" fill="#0284c7" />
+                                   <circle cx="85" cy="42" r="6" fill="#111827" stroke="#00f0ff" stroke-width="1" />
+                                   <path d="M20,45 Q60,60 100,45" fill="none" stroke="#38bdf8" stroke-width="2" />
+                                </svg>
+                            </div>
+                            <div class="card-info"><div class="card-name">דולפין</div><div class="card-role">צוללת חילוץ</div></div>
+                        </div>
                     </div>
-                    <div class="card-info"><div class="card-name">עקרב</div><div class="card-role">באגי שטח</div></div>
                 </div>
-
-                <div class="card vehicle-card" data-id="hawk">
-                    <div class="card-visual" id="hawk-card-visual">
-                        <svg viewBox="0 0 100 100">
-                            <polygon points="10,50 30,30 70,30 95,50 70,70 30,70" fill="#1f2937" />
-                            <rect x="20" y="15" width="60" height="4" fill="#111827" />
-                            <rect x="45" y="10" width="10" height="20" fill="#00f0ff" />
-                            <polygon points="70,35 85,45 70,55" fill="#00f0ff" />
-                        </svg>
-                    </div>
-                    <div class="card-info"><div class="card-name">הוק</div><div class="card-role">מסוק חמקן</div></div>
-                </div>
-
-                <div class="card vehicle-card" data-id="manta">
-                    <div class="card-visual" id="manta-card-visual">
-                        <svg viewBox="0 0 100 100">
-                            <rect x="10" y="60" width="80" height="15" rx="5" fill="#064e3b" />
-                            <polygon points="15,60 25,40 70,40 85,60" fill="#059669" />
-                            <polygon points="40,40 45,25 65,25 70,40" fill="#1f2937" />
-                            <circle cx="25" cy="35" r="15" fill="#111827" stroke="#334155" stroke-width="3"/>
-                        </svg>
-                    </div>
-                    <div class="card-info"><div class="card-name">מנטה</div><div class="card-role">רחפת שטח</div></div>
-                </div>
-                
-                <!-- NEW Vehicles (In Original V1 Complex SVG Style) -->
-                <div class="card vehicle-card" data-id="rhino">
-                    <div class="card-visual" id="rhino-card-visual">
-                        <svg viewBox="0 0 120 70">
-                           <polygon points="20,55 20,30 40,20 90,20 100,40 100,55" fill="#475569" />
-                           <polygon points="45,25 75,25 80,35 40,35" fill="#1f2937" />
-                           <rect x="50" y="27" width="20" height="6" fill="#00f0ff" stroke="none" opacity="0.8" />
-                           <rect x="15" y="50" width="90" height="15" rx="5" fill="#111827" />
-                           <circle cx="25" cy="57" r="5" fill="#334155" />
-                           <circle cx="45" cy="57" r="5" fill="#334155" />
-                           <circle cx="65" cy="57" r="5" fill="#334155" />
-                           <circle cx="85" cy="57" r="5" fill="#334155" />
-                           <path d="M10,60 L5,40 L15,25 L25,25 L20,40 L25,60 Z" fill="#eab308" />
-                        </svg>
-                    </div>
-                    <div class="card-info"><div class="card-name">ריינו</div><div class="card-role">דחפור כבד</div></div>
-                </div>
-                <div class="card vehicle-card" data-id="dolphin">
-                    <div class="card-visual" id="dolphin-card-visual">
-                        <svg viewBox="0 0 120 70">
-                           <ellipse cx="60" cy="45" rx="45" ry="18" fill="#0284c7" />
-                           <ellipse cx="60" cy="48" rx="40" ry="12" fill="#0369a1" />
-                           <polygon points="55,27 65,27 60,10" fill="#0284c7" />
-                           <polygon points="15,45 0,30 5,45 0,60" fill="#0284c7" />
-                           <circle cx="85" cy="42" r="6" fill="#111827" stroke="#00f0ff" stroke-width="1" />
-                           <path d="M20,45 Q60,60 100,45" fill="none" stroke="#38bdf8" stroke-width="2" />
-                        </svg>
-                    </div>
-                    <div class="card-info"><div class="card-name">דולפין</div><div class="card-role">צוללת חילוץ</div></div>
-                </div>
-
-            </div>
-
-            <div class="action-area">
-                <button class="btn-deploy" id="btnDeploy" disabled>הזנק צוות <i class="fa-solid fa-angles-left"></i></button>
-            </div>
-        </div>
-
-        <!-- Garage Overlay -->
-        <div id="garageOverlay" class="garage-overlay">
-            <div class="garage-modal">
-                <h2><i class="fa-solid fa-wrench"></i> מוסך שדרוגים (פיתוח טכנולוגי)</h2>
-                <div style="font-size: 16px; color: var(--text-muted);">השתמש בנקודות XP שנצברו במשימות כדי לפתוח שדרוגים קוסמטיים לציוד התחנה.</div>
-                <div class="status-item xp-counter" style="align-self: flex-start; margin-bottom: 10px;"><span id="garageXp">0</span> XP זמינים</div>
-                
-                <div class="upgrade-list" id="upgradeList"></div>
-
-                <button class="btn-return" id="btnCloseGarage" style="align-self: center; margin-top: 10px;">חזור למפקדה</button>
             </div>
         </div>
     </main>
 
-    <!-- SCREEN 2: TRANSIT -->
+    <div id="garageOverlay" class="garage-overlay">
+        <div class="garage-modal">
+            <h2><i class="fa-solid fa-wrench"></i> מוסך שדרוגים (פיתוח טכנולוגי)</h2>
+            <div style="font-size: 16px; color: var(--text-muted);">השתמש בנקודות XP שנצברו במשימות כדי לפתוח שדרוגים קוסמטיים לציוד התחנה.</div>
+            <div class="status-item xp-counter" style="align-self: flex-start; margin-bottom: 10px;"><span id="garageXp">0</span> XP זמינים</div>
+            
+            <div class="upgrade-list" id="upgradeList"></div>
+
+            <button class="btn-return" id="btnCloseGarage" style="align-self: center; margin-top: 10px;">חזור למפקדה</button>
+        </div>
+    </div>
+
     <main id="screen-transit" class="screen">
         <div class="weather-night-overlay"></div>
         <div class="weather-rain-overlay"></div>
@@ -581,7 +608,6 @@
         </div>
     </main>
 
-    <!-- SCREEN 3: MISSION ACTION -->
     <main id="screen-mission" class="screen">
         <div class="weather-night-overlay"></div>
         <div class="weather-rain-overlay"></div>
@@ -604,17 +630,9 @@
             </div>
             
             <button class="final-action-btn" id="btnFinalAction">בצע פעולה</button>
-
-            <!-- Mismatch Overlay -->
-            <div id="mismatchOverlay">
-                <h2><i class="fa-solid fa-triangle-exclamation fa-shake"></i> טעות בציוד!</h2>
-                <div style="color:white; font-size:30px; margin-bottom:40px;">הרכב שנבחר אינו מתאים לתוואי השטח!</div>
-                <button class="btn-return" id="btnMismatchReturn">חזור לבסיס</button>
-            </div>
         </div>
     </main>
 
-    <!-- SCREEN 4: SUCCESS -->
     <main id="screen-success" class="screen">
         <div class="success-title">משימה הושלמה!</div>
         <div class="stats-box">
@@ -767,7 +785,7 @@
             {
                 id: 'cat', title: 'חילוץ מגובה: אזרח לכוד',
                 desc: 'דיווח: חתול תופס מחסה על מבנה גבוה. נדרש סולם טקטי ויכולת טיפוס.', meta: 'נ.צ: אזור עירוני | דחיפות: צהובה',
-                reqVeh: 'titan', actionTitle: 'פריסת סולם טקטי', toolIcon: 'fa-ruler-vertical', toolColor: 'var(--neon-orange)', btnText: 'טפס עוד שלב!',
+                actionTitle: 'פריסת סולם טקטי', toolIcon: 'fa-ruler-vertical', toolColor: 'var(--neon-orange)', btnText: 'טפס עוד שלב!',
                 alertIcon: '<i class="fa-solid fa-cat"></i>', actionSteps: 3, xpReward: 150,
                 setupHazard: (container, isFaceLeft) => {
                     container.innerHTML = `<div class="cat-tree" style="${isFaceLeft ? 'border-left: 50px solid #334155; border-right: none; left: 0;' : 'border-right: 50px solid #334155; border-left: none; right: 0;'} position: absolute; width:100%; height:100%;"></div>
@@ -782,7 +800,7 @@
             {
                 id: 'mud', title: 'חילוץ שטח: רכב טובעני',
                 desc: 'דיווח: רכב שקוע בבוץ סמיך. נדרש כוח גרירה ורכב שטח כבד.', meta: 'נ.צ: יערות הדרום | דחיפות: כתומה',
-                reqVeh: 'scorpion', actionTitle: 'משיכת כננת כוח', toolIcon: 'fa-link', toolColor: 'var(--neon-blue)', btnText: '',
+                actionTitle: 'משיכת כננת כוח', toolIcon: 'fa-link', toolColor: 'var(--neon-blue)', btnText: '',
                 alertIcon: '<i class="fa-solid fa-car-burst"></i>', actionSteps: 5, xpReward: 200,
                 setupHazard: (container, isFaceLeft) => {
                     container.innerHTML = `<div class="mud-pit" style="position:absolute; bottom:0; width:100%; height:35%; background:#451a03; border-radius:50% 50% 0 0;"></div>
@@ -815,8 +833,8 @@
             },
             {
                 id: 'fire', title: 'כיבוי אש: שריפת חורש',
-                desc: 'דיווח: מוקד להבות מתפשט בחורש המקומי. נדרשת משאית תקיפה ודיכוי אש תחת לחץ במד מים יעודי.', meta: 'נ.צ: פארק לאומי | דחיפות: אדומה',
-                reqVeh: 'titan', actionTitle: 'ויסות לחץ מים', toolIcon: 'fa-fire-extinguisher', toolColor: 'var(--neon-blue)', btnText: '',
+                desc: 'דיווח: מוקד להבות מתפשט בחורש המקומי. יש לדכא את האש תחת הלחץ במד יעודי.', meta: 'נ.צ: פארק לאומי | דחיפות: אדומה',
+                actionTitle: 'ויסות לחץ מים', toolIcon: 'fa-fire-extinguisher', toolColor: 'var(--neon-blue)', btnText: '',
                 alertIcon: '<i class="fa-solid fa-fire"></i>', actionSteps: 4, xpReward: 250,
                 setupHazard: (container, isFaceLeft) => {
                     container.innerHTML = `<div class="fire-flames" id="fireFlames" style="position:absolute; bottom:0; left:0; width:100%; height:70%; background:linear-gradient(0deg, var(--neon-red), var(--neon-orange), transparent); clip-path:polygon(10% 100%, 20% 40%, 30% 80%, 50% 20%, 70% 90%, 80% 10%, 100% 100%); transition: height 1s;"></div>
@@ -868,8 +886,8 @@
             },
             {
                 id: 'fire2', title: 'כיבוי אווירי: שריפת צמרות',
-                desc: 'דיווח: אש משתוללת ביער מרוחק ואין גישה לרכבי קרקע. נדרש מסוק חמקן מהיר להטלת חומר מעכב בעירה במוקדים השונים.', meta: 'נ.צ: יער הצפון | דחיפות: אדומה',
-                reqVeh: 'hawk', actionTitle: 'הטלת מעכב בעירה', toolIcon: 'fa-droplet', toolColor: 'var(--neon-blue)', btnText: 'שחרר מים!',
+                desc: 'דיווח: אש משתוללת ביער מרוחק ואין גישה לרכבי קרקע. יש להטיל חומר מעכב בעירה במוקדים השונים.', meta: 'נ.צ: יער הצפון | דחיפות: אדומה',
+                actionTitle: 'הטלת מעכב בעירה', toolIcon: 'fa-droplet', toolColor: 'var(--neon-blue)', btnText: 'שחרר מים!',
                 alertIcon: '<i class="fa-solid fa-fire-flame-curved"></i>', actionSteps: 3, xpReward: 260,
                 setupHazard: (container, isFaceLeft) => {
                     container.innerHTML = `<div style="position:absolute; bottom:0; left:10%; width:80%; height:60%; background:#166534; clip-path:polygon(0 100%, 20% 20%, 50% 0, 80% 20%, 100% 100%);"></div>
@@ -884,8 +902,8 @@
             },
             {
                 id: 'dog', title: 'חילוץ ממים: בע"ח במצוקה',
-                desc: 'דיווח: כלב נלכד על אי בנהר. נדרשת סירת רחפת קלה וגלגל הצלה.', meta: 'נ.צ: אגם הצפון | דחיפות: צהובה',
-                reqVeh: 'manta', actionTitle: 'זריקת גלגל הצלה', toolIcon: 'fa-life-ring', toolColor: 'var(--neon-red)', btnText: 'משוך את הכלב!',
+                desc: 'דיווח: כלב נלכד על אי בנהר וזקוק לעזרה מיידית על ידי גלגל הצלה.', meta: 'נ.צ: אגם הצפון | דחיפות: צהובה',
+                actionTitle: 'זריקת גלגל הצלה', toolIcon: 'fa-life-ring', toolColor: 'var(--neon-red)', btnText: 'משוך את הכלב!',
                 alertIcon: '<i class="fa-solid fa-water"></i>', actionSteps: 3, xpReward: 150,
                 setupHazard: (container, isFaceLeft) => {
                     container.innerHTML = `<div class="river-scene" style="position:absolute; bottom:0; left:0; width:100%; height:50%; background:#0284c7; border-top:8px solid #0369a1;"></div>
@@ -900,8 +918,8 @@
             },
             {
                 id: 'hiker', title: 'חילוץ מהר: מטייל לכוד',
-                desc: 'דיווח: מטייל נתקע על צוק גבוה ואינו יכול לרדת. נדרש חילוץ מוסק עם סל הרמה.', meta: 'נ.צ: צוקי הנשר | דחיפות: כתומה',
-                reqVeh: 'hawk', actionTitle: 'הורדת סל חילוץ', toolIcon: 'fa-parachute-box', toolColor: 'var(--neon-orange)', btnText: 'העלה למסוק!',
+                desc: 'דיווח: מטייל נתקע על צוק גבוה ואינו יכול לרדת. חובה לבצע חילוץ עם סל הרמה.', meta: 'נ.צ: צוקי הנשר | דחיפות: כתומה',
+                actionTitle: 'הורדת סל חילוץ', toolIcon: 'fa-parachute-box', toolColor: 'var(--neon-orange)', btnText: 'העלה למסוק!',
                 alertIcon: '<i class="fa-solid fa-mountain"></i>', actionSteps: 4, xpReward: 200,
                 setupHazard: (container, isFaceLeft) => {
                     container.innerHTML = `<div class="mountain-cliff" style="position:absolute; bottom:0; ${isFaceLeft ? 'right:0; clip-path:polygon(0 100%, 100% 100%, 100% 0, 30% 0); border-left:8px solid #334155;' : 'left:0; clip-path:polygon(0 100%, 100% 100%, 70% 0, 0 0); border-right:8px solid #334155;'} width:80%; height:80%; background:#475569;"></div>
@@ -917,8 +935,8 @@
             },
             {
                 id: 'earthquake', title: 'חילוץ מהריסות: קריסת מבנה',
-                desc: 'דיווח: רעידת אדמה גרמה לקריסת חניון. לכודים תחת גושי בטון כבדים. נדרש דחפור משוריין לפינוי מסיבי.', meta: 'נ.צ: מרכז מסחרי | דחיפות: אדומה',
-                reqVeh: 'rhino', actionTitle: 'פינוי הריסות כבד', toolIcon: 'fa-hammer', toolColor: '#9ca3af', btnText: 'הרם בטון!',
+                desc: 'דיווח: רעידת אדמה גרמה לקריסת מבנה. יש לפנות גושי בטון כבדים כדי לשחרר לכודים.', meta: 'נ.צ: מרכז מסחרי | דחיפות: אדומה',
+                actionTitle: 'פינוי הריסות כבד', toolIcon: 'fa-hammer', toolColor: '#9ca3af', btnText: 'הרם בטון!',
                 alertIcon: '<i class="fa-solid fa-house-crack"></i>', actionSteps: 5, xpReward: 300,
                 setupHazard: (container, isFaceLeft) => {
                     container.innerHTML = `<div style="position:absolute; bottom:0; ${isFaceLeft ? 'right:15%;' : 'left:15%;'} width:350px; height:150px; background:#475569; clip-path:polygon(10% 100%, 30% 20%, 50% 40%, 80% 10%, 100% 100%); z-index:1;"></div>
@@ -933,8 +951,8 @@
             },
             {
                 id: 'hazmat', title: 'אירוע חומ"ס: דליפת חומצה',
-                desc: 'דיווח: משאית כימיקלים התהפכה וקיימת דליפה מסוכנת. נדרש אטימת הדליפה באמצעות דחפור כבד וצוות מיגון.', meta: 'נ.צ: אזור תעשייה | דחיפות: אדומה',
-                reqVeh: 'rhino', actionTitle: 'איטום מיכלים', toolIcon: 'fa-biohazard', toolColor: '#84cc16', btnText: 'אטום דליפה!',
+                desc: 'דיווח: משאית כימיקלים התהפכה וקיימת דליפה מסוכנת. חובה לבצע איטום ולבודד את המרחב בהקדם.', meta: 'נ.צ: אזור תעשייה | דחיפות: אדומה',
+                actionTitle: 'איטום מיכלים', toolIcon: 'fa-biohazard', toolColor: '#84cc16', btnText: 'אטום דליפה!',
                 alertIcon: '<i class="fa-solid fa-skull-crossbones"></i>', actionSteps: 4, xpReward: 350,
                 setupHazard: (container, isFaceLeft) => {
                     container.innerHTML = `<div id="toxicPuddle" style="position:absolute; bottom:0; left:0; width:100%; height:40%; background:radial-gradient(ellipse at center, rgba(132, 204, 22, 0.8) 0%, transparent 70%); transition: transform 1s, opacity 1s;"></div>
@@ -953,7 +971,6 @@
         let isCurrentFacingLeft = false;
         
         // Physics logic variables (ALL vehicles default to facing right initially due to SVG layout)
-        // Set all to 'false' so that the headlights, background scrolling, and layouts align perfectly.
         const vehiclePhysics = { 
             titan: { facesLeft: false }, 
             scorpion: { facesLeft: false }, 
@@ -968,7 +985,7 @@
 
         // Start HQ Alert Function
         function triggerAlert() {
-            // מחזור משימות מקיף (לוודא שרואים את כל המשימות, במיוחד כיבוי האש)
+            // מחזור משימות מקיף
             let unplayedMissions = JSON.parse(sessionStorage.getItem('rescue_unplayed') || '[]');
             if(unplayedMissions.length === 0) {
                 unplayedMissions = missionsData.map(m => m.id);
@@ -994,7 +1011,7 @@
                 document.getElementById('alertOverlayDesc').innerText = currentMission.desc;
                 document.getElementById('alertOverlayMeta').innerText = currentMission.meta;
                 
-                // עדכון חלונית תדרוך רציפה וגדולה
+                // עדכון חלונית תדרוך רציפה וגדולה (ללא גלילה - מותאם למסך)
                 document.getElementById('persistentBriefing').innerHTML = `<div style="display:flex; flex-direction:column; gap:10px;"><div><span style="color:var(--text-main);">${currentMission.title}</span></div><div style="font-size:18px; color:var(--text-muted); font-weight:normal;">${currentMission.desc}</div><div style="font-size:16px; font-family:'JetBrains Mono'; margin-top:5px;">${currentMission.meta}</div></div>`;
                 
                 document.getElementById('alertOverlay').style.display = 'flex';
@@ -1012,9 +1029,16 @@
             document.querySelectorAll('.card').forEach(c => c.classList.add('interactive'));
         });
 
-        // Selection Logic
+        // Selection Logic & Radar Deploy Button
         let selectedChar = null; let selectedVehicle = null; let selectedVehicleVisual = '';
+        const radarDeployBtn = document.getElementById('radarDeployBtn');
         
+        function checkDeployReady() {
+            if(selectedChar && selectedVehicle) {
+                radarDeployBtn.classList.add('ready-to-deploy');
+            }
+        }
+
         document.querySelectorAll('.card').forEach(card => {
             card.addEventListener('click', () => {
                 if(!card.classList.contains('interactive')) return;
@@ -1030,16 +1054,14 @@
                     selectedVehicleVisual = card.querySelector('.card-visual').innerHTML;
                 }
 
-                if(selectedChar && selectedVehicle) {
-                    const btn = document.getElementById('btnDeploy');
-                    btn.disabled = false; btn.classList.add('ready');
-                }
+                checkDeployReady();
             });
         });
 
-        // Deploy Logic
-        document.getElementById('btnDeploy').addEventListener('click', () => {
-            if(!document.getElementById('btnDeploy').classList.contains('ready')) return;
+        // Deploy Logic - Now on the Radar Panel
+        radarDeployBtn.addEventListener('click', () => {
+            if(!radarDeployBtn.classList.contains('ready-to-deploy')) return;
+            
             sounds.deploy();
             voice.speak("צוות חילוץ עשר, יוצאים לדרך!");
             document.body.classList.remove('alert-state');
@@ -1048,7 +1070,7 @@
             const isFlying = selectedVehicle === 'hawk';
             const isWater = (selectedVehicle === 'manta' || selectedVehicle === 'dolphin');
 
-            // Set up transit vehicle visually - הוספת קלאס לפי סוג רכב להגדלה
+            // Set up transit vehicle visually
             document.getElementById('transitSvgHolder').innerHTML = selectedVehicleVisual;
             const tVeh = document.getElementById('activeTransitVehicle');
             tVeh.className = `transit-vehicle-container veh-${selectedVehicle} ${isCurrentFacingLeft ? 'pos-right' : 'pos-left'} ${isFlying ? 'flying-vehicle' : ''}`;
@@ -1057,7 +1079,7 @@
             document.getElementById('transitHeadlightLeft').style.display = isCurrentFacingLeft ? 'block' : 'none';
             document.getElementById('transitHeadlightRight').style.display = isCurrentFacingLeft ? 'none' : 'block';
 
-            // Parallax Direction & Environment Logic (תוקן - קרקע נעה נגד כיוון הנסיעה)
+            // Parallax Direction
             const layerBack = document.getElementById('transitLayerBack');
             const layerMid = document.getElementById('transitLayerMid');
             const road = document.getElementById('transitRoad');
@@ -1066,7 +1088,7 @@
             layerMid.className = `parallax-layer layer-mid ${isCurrentFacingLeft ? 'bg-scroll-right' : 'bg-scroll-left'}`;
             road.className = `transit-road ${isCurrentFacingLeft ? 'bg-scroll-right' : 'bg-scroll-left'} ${isWater ? 'water-mode' : ''}`;
 
-            // Set up mission vehicle - הוספת קלאס גם פה להגדלה
+            // Set up mission vehicle
             document.getElementById('missionSvgHolder').innerHTML = selectedVehicleVisual;
             const mZone = document.getElementById('vehicleZone');
             mZone.className = `vehicle-zone veh-${selectedVehicle} ${isFlying ? 'mission-flying' : ''}`;
@@ -1092,11 +1114,11 @@
         document.getElementById('btnLights').addEventListener('click', () => {
             sounds.click();
             vehicleContainer.classList.toggle('lights-on');
-            document.getElementById('btnLights').style.background = vehicleContainer.classList.contains('lights-on') ? 'var(--neon-blue)' : 'var(--bg-panel)';
+            document.getElementById('btnLights').style.background = vehicleContainer.classList.contains('lights-on') ? 'var(--neon-blue)' : 'var(--bg-panel-solid)';
             document.getElementById('btnLights').style.color = vehicleContainer.classList.contains('lights-on') ? '#000' : 'var(--neon-blue)';
         });
 
-        // Mission Action (Multi-step & Fail state)
+        // Mission Action 
         function initMissionAction() {
             document.getElementById('missionActionTitle').innerText = currentMission.actionTitle;
             document.getElementById('missionTotalSteps').innerText = currentMission.actionSteps || 1;
@@ -1104,23 +1126,6 @@
             
             const hazardZone = document.getElementById('hazardZone');
             currentMission.setupHazard(hazardZone, isCurrentFacingLeft);
-
-            // Fail-state mismatch check
-            if (selectedVehicle !== currentMission.reqVeh) {
-                sounds.boing();
-                
-                const mInner = document.getElementById('missionSvgHolder');
-                mInner.style.animation = 'none';
-                void mInner.offsetWidth; // trigger reflow
-                mInner.style.animation = 'comicFailBounce 1.5s ease-in-out forwards';
-                
-                setTimeout(() => {
-                    document.getElementById('mismatchOverlay').style.display = 'flex';
-                    voice.speak("אופס! הציוד לא מתאים לתוואי השטח. חוזרים למפקדה.");
-                    sounds.alert();
-                }, 1500);
-                return;
-            }
 
             const tool = document.createElement('div');
             tool.className = 'draggable-tool';
@@ -1205,46 +1210,37 @@
         function softReset() {
             sounds.click(); 
             
-            // איפוס תצוגות מוחלט
             document.getElementById('radarBlip').classList.remove('active');
             document.querySelectorAll('.card').forEach(c => { c.classList.remove('selected', 'interactive'); });
-            const btn = document.getElementById('btnDeploy');
-            btn.disabled = true; btn.classList.remove('ready');
-            selectedChar = null; selectedVehicle = null;
-            document.getElementById('mismatchOverlay').style.display = 'none';
-            document.getElementById('alertOverlay').style.display = 'none';
             
-            // איפוס משימה נוכחית (Briefing)
+            // איפוס כפתור הרדאר
+            radarDeployBtn.classList.remove('ready-to-deploy');
+            selectedChar = null; selectedVehicle = null;
+            
+            document.getElementById('alertOverlay').style.display = 'none';
             document.getElementById('persistentBriefing').innerHTML = 'מערכת ממתינה לאירוע...';
 
-            // מחיקת שאריות ממשקי משימות
             const ui = document.querySelector('.minigame-ui');
             if(ui) ui.remove();
             document.querySelectorAll('.draggable-tool').forEach(t => t.remove());
             const finalBtn = document.getElementById('btnFinalAction');
             if(finalBtn) finalBtn.style.display = 'none';
 
-            // מחיקת אנימציות פסילה וריחוף
             const mInner = document.getElementById('missionSvgHolder');
-            if (mInner) {
-                mInner.style.animation = 'none';
-            }
+            if (mInner) { mInner.style.animation = 'none'; }
             document.getElementById('vehicleZone').className = 'vehicle-zone';
             document.getElementById('transitRoad').classList.remove('water-mode');
 
-            // איפוס מזג אוויר
             document.body.classList.remove('weather-clear', 'weather-rain', 'weather-night');
             currentWeather = weathers[Math.floor(Math.random() * weathers.length)];
             document.body.classList.add(`weather-${currentWeather}`);
             
             switchScreen('hq');
             
-            // הכנת המשימה הבאה
             setTimeout(triggerAlert, 1000);
         }
 
         document.getElementById('btnReturn').addEventListener('click', softReset);
-        document.getElementById('btnMismatchReturn').addEventListener('click', softReset);
 
     </script>
 </body>
